@@ -21,6 +21,7 @@ export const HEADER_BG = "#181D35"
 export const NAV_LINK_COLOR = "#CBD5E1"
 export const NAV_LINK_HOVER_COLOR = "#FFFFFF"
 export const CONTENT_MARGIN_Y = 3
+export const FOOTER_HEIGHT = "1.5rem"
 export const FOOTER_BG = "#181D35"
 export const FOOTER_TEXT_COLOR = "#94A3B8"
 

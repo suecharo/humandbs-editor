@@ -12,9 +12,10 @@ import { TabPanel, tabA11yProps } from "../TabPanel"
 interface TabbedPaneProps {
   prefix: string
   form: React.ReactNode
-  preview: React.ReactNode
+  previewJa: React.ReactNode
+  previewEn: React.ReactNode
   humId: string
-  originalUrl: string | null
+  originalUrls: { ja: string | null; en: string | null }
   showOriginalIframe?: boolean
 }
 
@@ -41,16 +42,48 @@ const OriginalFallback = ({ url }: { url: string }) => (
   </Box>
 )
 
-export const TabbedPane = ({ prefix, form, preview, humId, originalUrl, showOriginalIframe = true }: TabbedPaneProps) => {
+const OriginalTabContent = ({
+  url,
+  iframeSrc,
+  showIframe,
+}: {
+  url: string | null
+  iframeSrc: string
+  showIframe: boolean
+}) => {
+  if (url && showIframe) {
+    return (
+      <iframe
+        src={iframeSrc}
+        title="Original page"
+        style={{ height: "100%", border: "none", width: "100%" }}
+      />
+    )
+  }
+  if (url) {
+    return <OriginalFallback url={url} />
+  }
+
+  return (
+    <Box sx={{ p: TAB_CONTENT_PADDING }}>
+      <Typography color="text.secondary">Original URL is not available.</Typography>
+    </Box>
+  )
+}
+
+export const TabbedPane = ({ prefix, form, previewJa, previewEn, humId, originalUrls, showOriginalIframe = true }: TabbedPaneProps) => {
   const [tabIndex, setTabIndex] = useState(0)
-  const proxyUrl = `/api/researches/${encodeURIComponent(humId)}/original`
+  const proxyUrl = (lang: "ja" | "en") =>
+    `/api/researches/${encodeURIComponent(humId)}/original?lang=${lang}`
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Tabs value={tabIndex} onChange={(_, v: number) => setTabIndex(v)} sx={TAB_BAR_SX}>
         <Tab label="Edit" {...tabA11yProps(prefix, 0)} />
-        <Tab label="Preview" {...tabA11yProps(prefix, 1)} />
-        <Tab label="Original" {...tabA11yProps(prefix, 2)} />
+        <Tab label="Preview Ja" {...tabA11yProps(prefix, 1)} />
+        <Tab label="Preview En" {...tabA11yProps(prefix, 2)} />
+        <Tab label="Original Ja" {...tabA11yProps(prefix, 3)} />
+        <Tab label="Original En" {...tabA11yProps(prefix, 4)} />
       </Tabs>
       <Box sx={{ flex: 1, overflow: "hidden" }}>
         <TabPanel value={tabIndex} index={0} prefix={prefix}>
@@ -60,23 +93,27 @@ export const TabbedPane = ({ prefix, form, preview, humId, originalUrl, showOrig
         </TabPanel>
         <TabPanel value={tabIndex} index={1} prefix={prefix} lazy>
           <Box sx={{ overflow: "auto", height: "100%", p: TAB_CONTENT_PADDING }}>
-            {preview}
+            {previewJa}
           </Box>
         </TabPanel>
         <TabPanel value={tabIndex} index={2} prefix={prefix} lazy>
-          {originalUrl && showOriginalIframe ? (
-            <iframe
-              src={proxyUrl}
-              title="Original page"
-              style={{ height: "100%", border: "none", width: "100%" }}
-            />
-          ) : originalUrl ? (
-            <OriginalFallback url={originalUrl} />
-          ) : (
-            <Box sx={{ p: TAB_CONTENT_PADDING }}>
-              <Typography color="text.secondary">Original URL is not available.</Typography>
-            </Box>
-          )}
+          <Box sx={{ overflow: "auto", height: "100%", p: TAB_CONTENT_PADDING }}>
+            {previewEn}
+          </Box>
+        </TabPanel>
+        <TabPanel value={tabIndex} index={3} prefix={prefix} lazy>
+          <OriginalTabContent
+            url={originalUrls.ja}
+            iframeSrc={proxyUrl("ja")}
+            showIframe={showOriginalIframe}
+          />
+        </TabPanel>
+        <TabPanel value={tabIndex} index={4} prefix={prefix} lazy>
+          <OriginalTabContent
+            url={originalUrls.en}
+            iframeSrc={proxyUrl("en")}
+            showIframe={showOriginalIframe}
+          />
         </TabPanel>
       </Box>
     </Box>

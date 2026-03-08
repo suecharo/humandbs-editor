@@ -19,7 +19,7 @@ import { useResearch } from "../hooks/use-research"
 import { useResearchVersions } from "../hooks/use-research-versions"
 import { researchEditRoute } from "../router"
 import { researchDirtyAtom, researchDraftAtom, researchServerAtom } from "../stores/research-edit"
-import { HEADER_HEIGHT, SUBSECTION_GAP } from "../theme"
+import { FOOTER_HEIGHT, HEADER_HEIGHT, SUBSECTION_GAP } from "../theme"
 
 export const ResearchEditPage = () => {
   const { humId } = researchEditRoute.useParams()
@@ -86,15 +86,16 @@ export const ResearchEditPage = () => {
           Unsaved changes
         </Alert>
       )}
-      <Box sx={{ height: `calc(100vh - ${HEADER_HEIGHT})` }}>
+      <Box sx={{ position: "sticky", top: 0, height: `calc(100vh - ${HEADER_HEIGHT} - ${FOOTER_HEIGHT})` }}>
         <SplitLayout
           left={
             <TabbedPane
               prefix="left"
               form={<ResearchForm versions={versions ?? []} />}
-              preview={<ResearchPreview />}
+              previewJa={<ResearchPreview lang="ja" />}
+              previewEn={<ResearchPreview lang="en" />}
               humId={humId}
-              originalUrl={research?.url.ja ?? null}
+              originalUrls={{ ja: research?.url.ja ?? null, en: research?.url.en ?? null }}
               showOriginalIframe={debugOriginal !== "off"}
             />
           }
@@ -102,15 +103,18 @@ export const ResearchEditPage = () => {
             <TabbedPane
               prefix="right"
               form={<ResearchForm versions={versions ?? []} />}
-              preview={<ResearchPreview />}
+              previewJa={<ResearchPreview lang="ja" />}
+              previewEn={<ResearchPreview lang="en" />}
               humId={humId}
-              originalUrl={research?.url.ja ?? null}
+              originalUrls={{ ja: research?.url.ja ?? null, en: research?.url.en ?? null }}
               showOriginalIframe={debugOriginal !== "off"}
             />
           }
         />
       </Box>
-      <AppFooter />
+      <Box sx={{ position: "relative", zIndex: 1 }}>
+        <AppFooter />
+      </Box>
     </Box>
   )
 }

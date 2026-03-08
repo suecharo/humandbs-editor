@@ -11,6 +11,7 @@ import { readEditorState } from "../utils/editor-state"
 import { readJson } from "../utils/read-json"
 
 const HumIdSchema = z.string().regex(/^hum\d+$/)
+const LangSchema = z.enum(["ja", "en"]).default("ja")
 
 export const createResearchesRouter = (structuredJsonDir: string): Router => {
   const router = Router()
@@ -141,9 +142,16 @@ export const createResearchesRouter = (structuredJsonDir: string): Router => {
 
         return
       }
+      const langResult = LangSchema.safeParse(req.query.lang)
+      if (!langResult.success) {
+        res.status(400).json({ error: "Invalid lang parameter. Must be 'ja' or 'en'" })
+
+        return
+      }
+      const lang = langResult.data
       const researchPath = path.join(structuredJsonDir, "research", `${humIdResult.data}.json`)
       const research = await readJson(researchPath, ResearchSchema)
-      const originalUrl = research.url.ja
+      const originalUrl = research.url[lang]
       if (!originalUrl) {
         res.status(404).json({ error: "Original URL not found" })
 

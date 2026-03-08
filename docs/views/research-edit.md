@@ -13,11 +13,12 @@ fullScreenLayout (AppHeader + full-height main、footer なし) を使用。
 |---|---|
 | Edit | フォーム編集 |
 | Preview | プレビュー表示 |
-| Original | humandbs 元ページ (サーバーサイドプロキシ経由) |
+| Original Ja | humandbs 元ページ 日本語版 (サーバーサイドプロキシ経由) |
+| Original En | humandbs 元ページ 英語版 (サーバーサイドプロキシ経由) |
 
 - タブの初期値は Edit (index 0)
 - Preview / Original タブは lazy rendering (初回表示まで DOM 未生成)
-- Original タブはサーバーサイドプロキシ (`GET /api/researches/:humId/original`) で humandbs のページを取得し、header/menu/footer を除去して iframe に表示する
+- Original Ja / Original En タブはサーバーサイドプロキシ (`GET /api/researches/:humId/original?lang=ja|en`) で humandbs のページを取得し、header/menu/footer を除去して iframe に表示する
 - プロキシ先は `humandbs.dbcls.jp` に限定 (SSRF 対策)
 - フォールバックとして「新しいタブで開く」リンクを表示する
 - フォームの変更はプレビューにリアルタイム反映される (Jotai atom 共有)
