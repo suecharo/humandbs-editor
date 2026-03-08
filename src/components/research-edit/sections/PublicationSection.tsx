@@ -15,14 +15,18 @@ import { memo } from "react"
 
 import { SectionHeader } from "@/components/SectionHeader"
 import { useStableKeys } from "@/hooks/use-stable-keys"
+import type { SectionCurationStatus } from "@/schemas/editor-state"
 import type { Publication, Research } from "@/schemas/research"
 import { FORM_FIELD_MAX_WIDTH, FORM_LABEL_SX, SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextField } from "../fields/BilingualTextField"
+import { SectionCurationToggle } from "../SectionCurationToggle"
 
 interface PublicationSectionProps {
   draft: Research
   onChange: (updated: Research) => void
+  sectionStatus?: SectionCurationStatus | undefined
+  onToggleStatus?: (() => void) | undefined
 }
 
 const emptyPublication: Publication = {
@@ -30,7 +34,7 @@ const emptyPublication: Publication = {
   doi: null,
 }
 
-export const PublicationSection = memo(({ draft, onChange }: PublicationSectionProps) => {
+export const PublicationSection = memo(({ draft, onChange, sectionStatus, onToggleStatus }: PublicationSectionProps) => {
   const { relatedPublication } = draft
   const { keys, removeKey } = useStableKeys(relatedPublication.length)
 
@@ -43,7 +47,13 @@ export const PublicationSection = memo(({ draft, onChange }: PublicationSectionP
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="関連論文" size="small" />
+        <SectionHeader
+          title="関連論文"
+          size="small"
+          action={sectionStatus !== undefined && onToggleStatus ? (
+            <SectionCurationToggle status={sectionStatus} onToggle={onToggleStatus} />
+          ) : undefined}
+        />
       </Box>
       {relatedPublication.map((pub, i) => (
         <Accordion key={keys[i]} defaultExpanded={relatedPublication.length <= 3} slotProps={{ transition: { unmountOnExit: true } }}>
@@ -105,4 +115,4 @@ export const PublicationSection = memo(({ draft, onChange }: PublicationSectionP
       </Button>
     </Paper>
   )
-}, (prev, next) => prev.draft.relatedPublication === next.draft.relatedPublication)
+}, (prev, next) => prev.draft.relatedPublication === next.draft.relatedPublication && prev.sectionStatus === next.sectionStatus)

@@ -116,7 +116,8 @@ curation 状態と editing lock を管理する。structured-json には手を�
 {
   researches: {
     [humId: string]: {
-      status: "uncurated" | "in-progress" | "curated"
+      status: "uncurated" | "in-progress" | "curated" // derived from sectionStatuses
+      sectionStatuses?: Record<string, "uncurated" | "curated"> // per-section status
       updatedAt: string // ISO 8601
       editingBy: string | null // Keycloak sub (user ID)
       editingByName: string | null // display name

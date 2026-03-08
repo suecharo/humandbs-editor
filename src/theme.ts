@@ -25,7 +25,7 @@ export const FOOTER_HEIGHT = "1.5rem"
 export const FOOTER_BG = "#181D35"
 export const FOOTER_TEXT_COLOR = "#94A3B8"
 
-export const FORM_FIELD_MAX_WIDTH = "600px"
+export const FORM_FIELD_MAX_WIDTH = "100%"
 
 export const TAB_BAR_SX = { borderBottom: 1, borderColor: "divider", px: 1 } as const
 export const TAB_CONTENT_PADDING = 3

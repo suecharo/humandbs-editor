@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box"
 import { useAtom } from "jotai"
 
+import type { SectionCurationStatus } from "@/schemas/editor-state"
 import type { ResearchVersion } from "@/schemas/research-version"
 import { researchDraftAtom } from "@/stores/research-edit"
 import { SECTION_GAP } from "@/theme"
@@ -16,23 +17,65 @@ import { TitleSection } from "./sections/TitleSection"
 
 interface ResearchFormProps {
   versions: ResearchVersion[]
+  sectionStatuses: Record<string, SectionCurationStatus>
+  onToggleSection: (sectionId: string) => void
 }
 
-export const ResearchForm = ({ versions }: ResearchFormProps) => {
+export const ResearchForm = ({ versions, sectionStatuses, onToggleSection }: ResearchFormProps) => {
   const [draft, setDraft] = useAtom(researchDraftAtom)
 
   if (!draft) return null
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: SECTION_GAP }}>
-      <TitleSection draft={draft} onChange={setDraft} />
-      <SummarySection draft={draft} onChange={setDraft} />
-      <DatasetsSection versions={versions} latestVersionId={draft.latestVersion} />
-      <DataProviderSection draft={draft} onChange={setDraft} />
-      <ResearchProjectSection draft={draft} onChange={setDraft} />
-      <GrantSection draft={draft} onChange={setDraft} />
-      <PublicationSection draft={draft} onChange={setDraft} />
-      <ControlledAccessUserSection draft={draft} onChange={setDraft} />
+      <TitleSection
+        draft={draft}
+        onChange={setDraft}
+        sectionStatus={sectionStatuses.title ?? "uncurated"}
+        onToggleStatus={() => onToggleSection("title")}
+      />
+      <SummarySection
+        draft={draft}
+        onChange={setDraft}
+        sectionStatus={sectionStatuses.summary ?? "uncurated"}
+        onToggleStatus={() => onToggleSection("summary")}
+      />
+      <DatasetsSection
+        versions={versions}
+        latestVersionId={draft.latestVersion}
+        sectionStatus={sectionStatuses.datasets ?? "uncurated"}
+        onToggleStatus={() => onToggleSection("datasets")}
+      />
+      <DataProviderSection
+        draft={draft}
+        onChange={setDraft}
+        sectionStatus={sectionStatuses.dataProvider ?? "uncurated"}
+        onToggleStatus={() => onToggleSection("dataProvider")}
+      />
+      <ResearchProjectSection
+        draft={draft}
+        onChange={setDraft}
+        sectionStatus={sectionStatuses.researchProject ?? "uncurated"}
+        onToggleStatus={() => onToggleSection("researchProject")}
+      />
+      <GrantSection
+        draft={draft}
+        onChange={setDraft}
+        sectionStatus={sectionStatuses.grant ?? "uncurated"}
+        onToggleStatus={() => onToggleSection("grant")}
+      />
+      <PublicationSection
+        draft={draft}
+        onChange={setDraft}
+        sectionStatus={sectionStatuses.publication ?? "uncurated"}
+        onToggleStatus={() => onToggleSection("publication")}
+      />
+      <ControlledAccessUserSection
+        draft={draft}
+        onChange={setDraft}
+        sectionStatus={sectionStatuses.controlledAccessUser ?? "uncurated"}
+        onToggleStatus={() => onToggleSection("controlledAccessUser")}
+      />
     </Box>
   )
 }

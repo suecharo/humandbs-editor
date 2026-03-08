@@ -3,23 +3,33 @@ import Paper from "@mui/material/Paper"
 import { memo } from "react"
 
 import { SectionHeader } from "@/components/SectionHeader"
+import type { SectionCurationStatus } from "@/schemas/editor-state"
 import type { Research } from "@/schemas/research"
 import { SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextValueField } from "../fields/BilingualTextValueField"
+import { SectionCurationToggle } from "../SectionCurationToggle"
 
 interface SummarySectionProps {
   draft: Research
   onChange: (updated: Research) => void
+  sectionStatus?: SectionCurationStatus | undefined
+  onToggleStatus?: (() => void) | undefined
 }
 
-export const SummarySection = memo(({ draft, onChange }: SummarySectionProps) => {
+export const SummarySection = memo(({ draft, onChange, sectionStatus, onToggleStatus }: SummarySectionProps) => {
   const { summary } = draft
 
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="研究内容の概要" size="small" />
+        <SectionHeader
+          title="研究内容の概要"
+          size="small"
+          action={sectionStatus !== undefined && onToggleStatus ? (
+            <SectionCurationToggle status={sectionStatus} onToggle={onToggleStatus} />
+          ) : undefined}
+        />
       </Box>
       <BilingualTextValueField
         label="目的"
@@ -38,4 +48,4 @@ export const SummarySection = memo(({ draft, onChange }: SummarySectionProps) =>
       />
     </Paper>
   )
-}, (prev, next) => prev.draft.summary === next.draft.summary)
+}, (prev, next) => prev.draft.summary === next.draft.summary && prev.sectionStatus === next.sectionStatus)

@@ -6,7 +6,7 @@ import CircularProgress from "@mui/material/CircularProgress"
 import Container from "@mui/material/Container"
 import Typography from "@mui/material/Typography"
 import { Link } from "@tanstack/react-router"
-import { useAtomValue, useSetAtom } from "jotai"
+import { useAtom, useAtomValue, useSetAtom } from "jotai"
 import { useEffect } from "react"
 
 import { AppFooter } from "../components/layout/AppFooter"
@@ -15,18 +15,23 @@ import { ResearchForm } from "../components/research-edit/ResearchForm"
 import { ResearchPreview } from "../components/research-edit/ResearchPreview"
 import { BasicInfoSection } from "../components/research-edit/sections/BasicInfoSection"
 import { TabbedPane } from "../components/research-edit/TabbedPane"
+import { useCurationStatus, useUpdateSectionStatus } from "../hooks/use-curation-status"
 import { useResearch } from "../hooks/use-research"
 import { useResearchVersions } from "../hooks/use-research-versions"
 import { researchEditRoute } from "../router"
+import type { SectionCurationStatus } from "../schemas/editor-state"
 import { researchDirtyAtom, researchDraftAtom, researchServerAtom } from "../stores/research-edit"
 import { FOOTER_HEIGHT, HEADER_HEIGHT, SUBSECTION_GAP } from "../theme"
+import { RESEARCH_SECTION_IDS } from "../utils/curation"
 
 export const ResearchEditPage = () => {
   const { humId } = researchEditRoute.useParams()
   const { debugOriginal } = researchEditRoute.useSearch()
   const { data: research, isLoading, error } = useResearch(humId)
   const { data: versions } = useResearchVersions(humId)
-  const setServer = useSetAtom(researchServerAtom)
+  const { data: curationData } = useCurationStatus(humId)
+  const updateSectionStatus = useUpdateSectionStatus(humId)
+  const [server, setServer] = useAtom(researchServerAtom)
   const setDraft = useSetAtom(researchDraftAtom)
   const dirty = useAtomValue(researchDirtyAtom)
 
@@ -41,6 +46,23 @@ export const ResearchEditPage = () => {
     setServer(null)
     setDraft(null)
   }, [setServer, setDraft])
+
+  const handleDiscardChanges = () => {
+    if (server) setDraft(structuredClone(server))
+  }
+
+  const handleToggleSection = (sectionId: string) => {
+    const current = curationData?.sectionStatuses[sectionId] ?? "uncurated"
+    const next: SectionCurationStatus = current === "curated" ? "uncurated" : "curated"
+    updateSectionStatus.mutate({ [sectionId]: next })
+  }
+
+  const handleSetAllSections = (status: SectionCurationStatus) => {
+    const allStatuses = Object.fromEntries(
+      RESEARCH_SECTION_IDS.map((id) => [id, status]),
+    ) as Record<string, SectionCurationStatus>
+    updateSectionStatus.mutate(allStatuses)
+  }
 
   if (isLoading) {
     return (
@@ -60,6 +82,8 @@ export const ResearchEditPage = () => {
     )
   }
 
+  const sectionStatuses = curationData?.sectionStatuses ?? {}
+
   return (
     <Box sx={{ height: "100%", overflow: "auto" }}>
       <Box sx={{ bgcolor: "background.default" }}>
@@ -76,7 +100,14 @@ export const ResearchEditPage = () => {
           </Breadcrumbs>
           {research && (
             <Box sx={{ pb: SUBSECTION_GAP }}>
-              <BasicInfoSection research={research} versions={versions ?? []} />
+              <BasicInfoSection
+                research={research}
+                versions={versions ?? []}
+                curationStatus={curationData?.status ?? "uncurated"}
+                dirty={dirty}
+                onDiscardChanges={handleDiscardChanges}
+                onSetAllSections={handleSetAllSections}
+              />
             </Box>
           )}
         </Container>
@@ -91,7 +122,13 @@ export const ResearchEditPage = () => {
           left={
             <TabbedPane
               prefix="left"
-              form={<ResearchForm versions={versions ?? []} />}
+              form={
+                <ResearchForm
+                  versions={versions ?? []}
+                  sectionStatuses={sectionStatuses}
+                  onToggleSection={handleToggleSection}
+                />
+              }
               previewJa={<ResearchPreview lang="ja" />}
               previewEn={<ResearchPreview lang="en" />}
               humId={humId}
@@ -102,7 +139,13 @@ export const ResearchEditPage = () => {
           right={
             <TabbedPane
               prefix="right"
-              form={<ResearchForm versions={versions ?? []} />}
+              form={
+                <ResearchForm
+                  versions={versions ?? []}
+                  sectionStatuses={sectionStatuses}
+                  onToggleSection={handleToggleSection}
+                />
+              }
               previewJa={<ResearchPreview lang="ja" />}
               previewEn={<ResearchPreview lang="en" />}
               humId={humId}

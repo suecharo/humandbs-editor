@@ -14,14 +14,18 @@ import { memo } from "react"
 
 import { SectionHeader } from "@/components/SectionHeader"
 import { useStableKeys } from "@/hooks/use-stable-keys"
+import type { SectionCurationStatus } from "@/schemas/editor-state"
 import type { Grant, Research } from "@/schemas/research"
 import { FORM_FIELD_MAX_WIDTH, SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextField } from "../fields/BilingualTextField"
+import { SectionCurationToggle } from "../SectionCurationToggle"
 
 interface GrantSectionProps {
   draft: Research
   onChange: (updated: Research) => void
+  sectionStatus?: SectionCurationStatus | undefined
+  onToggleStatus?: (() => void) | undefined
 }
 
 const emptyGrant: Grant = {
@@ -30,7 +34,7 @@ const emptyGrant: Grant = {
   agency: { name: { ja: null, en: null } },
 }
 
-export const GrantSection = memo(({ draft, onChange }: GrantSectionProps) => {
+export const GrantSection = memo(({ draft, onChange, sectionStatus, onToggleStatus }: GrantSectionProps) => {
   const { grant } = draft
   const { keys, removeKey } = useStableKeys(grant.length)
 
@@ -43,7 +47,13 @@ export const GrantSection = memo(({ draft, onChange }: GrantSectionProps) => {
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="科研費/助成金" size="small" />
+        <SectionHeader
+          title="科研費/助成金"
+          size="small"
+          action={sectionStatus !== undefined && onToggleStatus ? (
+            <SectionCurationToggle status={sectionStatus} onToggle={onToggleStatus} />
+          ) : undefined}
+        />
       </Box>
       {grant.map((g, i) => (
         <Accordion key={keys[i]} defaultExpanded={grant.length <= 3} slotProps={{ transition: { unmountOnExit: true } }}>
@@ -103,4 +113,4 @@ export const GrantSection = memo(({ draft, onChange }: GrantSectionProps) => {
       </Button>
     </Paper>
   )
-}, (prev, next) => prev.draft.grant === next.draft.grant)
+}, (prev, next) => prev.draft.grant === next.draft.grant && prev.sectionStatus === next.sectionStatus)

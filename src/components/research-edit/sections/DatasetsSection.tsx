@@ -9,22 +9,33 @@ import TableRow from "@mui/material/TableRow"
 import Typography from "@mui/material/Typography"
 
 import { SectionHeader } from "@/components/SectionHeader"
+import type { SectionCurationStatus } from "@/schemas/editor-state"
 import type { ResearchVersion } from "@/schemas/research-version"
 import { MONOSPACE_ID_SX, SUBSECTION_GAP } from "@/theme"
+
+import { SectionCurationToggle } from "../SectionCurationToggle"
 
 interface DatasetsSectionProps {
   versions: ResearchVersion[]
   latestVersionId: string
+  sectionStatus?: SectionCurationStatus | undefined
+  onToggleStatus?: (() => void) | undefined
 }
 
-export const DatasetsSection = ({ versions, latestVersionId }: DatasetsSectionProps) => {
+export const DatasetsSection = ({ versions, latestVersionId, sectionStatus, onToggleStatus }: DatasetsSectionProps) => {
   const latestVersion = versions.find((v) => v.humVersionId === latestVersionId) ?? versions.at(-1)
   const datasets = latestVersion?.datasets ?? []
 
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="データセット" size="small" />
+        <SectionHeader
+          title="データセット"
+          size="small"
+          action={sectionStatus !== undefined && onToggleStatus ? (
+            <SectionCurationToggle status={sectionStatus} onToggle={onToggleStatus} />
+          ) : undefined}
+        />
       </Box>
       <TableContainer>
         <Table>

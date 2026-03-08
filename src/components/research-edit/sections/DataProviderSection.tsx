@@ -14,14 +14,18 @@ import { memo } from "react"
 
 import { SectionHeader } from "@/components/SectionHeader"
 import { useStableKeys } from "@/hooks/use-stable-keys"
+import type { SectionCurationStatus } from "@/schemas/editor-state"
 import type { Person, Research } from "@/schemas/research"
 import { FORM_FIELD_MAX_WIDTH, SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextValueField } from "../fields/BilingualTextValueField"
+import { SectionCurationToggle } from "../SectionCurationToggle"
 
 interface DataProviderSectionProps {
   draft: Research
   onChange: (updated: Research) => void
+  sectionStatus?: SectionCurationStatus | undefined
+  onToggleStatus?: (() => void) | undefined
 }
 
 const emptyPerson: Person = {
@@ -73,7 +77,7 @@ const PersonFields = ({
   </Box>
 )
 
-export const DataProviderSection = memo(({ draft, onChange }: DataProviderSectionProps) => {
+export const DataProviderSection = memo(({ draft, onChange, sectionStatus, onToggleStatus }: DataProviderSectionProps) => {
   const { dataProvider } = draft
   const { keys, removeKey } = useStableKeys(dataProvider.length)
 
@@ -86,7 +90,13 @@ export const DataProviderSection = memo(({ draft, onChange }: DataProviderSectio
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="提供者情報" size="small" />
+        <SectionHeader
+          title="提供者情報"
+          size="small"
+          action={sectionStatus !== undefined && onToggleStatus ? (
+            <SectionCurationToggle status={sectionStatus} onToggle={onToggleStatus} />
+          ) : undefined}
+        />
       </Box>
       {dataProvider.map((person, i) => (
         <Accordion key={keys[i]} defaultExpanded={dataProvider.length <= 3} slotProps={{ transition: { unmountOnExit: true } }}>
@@ -123,4 +133,4 @@ export const DataProviderSection = memo(({ draft, onChange }: DataProviderSectio
       </Button>
     </Paper>
   )
-}, (prev, next) => prev.draft.dataProvider === next.draft.dataProvider)
+}, (prev, next) => prev.draft.dataProvider === next.draft.dataProvider && prev.sectionStatus === next.sectionStatus)

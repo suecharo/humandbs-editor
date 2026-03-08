@@ -13,14 +13,18 @@ import { memo } from "react"
 
 import { SectionHeader } from "@/components/SectionHeader"
 import { useStableKeys } from "@/hooks/use-stable-keys"
+import type { SectionCurationStatus } from "@/schemas/editor-state"
 import type { Research, ResearchProject } from "@/schemas/research"
 import { SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextValueField } from "../fields/BilingualTextValueField"
+import { SectionCurationToggle } from "../SectionCurationToggle"
 
 interface ResearchProjectSectionProps {
   draft: Research
   onChange: (updated: Research) => void
+  sectionStatus?: SectionCurationStatus | undefined
+  onToggleStatus?: (() => void) | undefined
 }
 
 const emptyProject: ResearchProject = {
@@ -28,7 +32,7 @@ const emptyProject: ResearchProject = {
   url: null,
 }
 
-export const ResearchProjectSection = memo(({ draft, onChange }: ResearchProjectSectionProps) => {
+export const ResearchProjectSection = memo(({ draft, onChange, sectionStatus, onToggleStatus }: ResearchProjectSectionProps) => {
   const { researchProject } = draft
   const { keys, removeKey } = useStableKeys(researchProject.length)
 
@@ -41,7 +45,13 @@ export const ResearchProjectSection = memo(({ draft, onChange }: ResearchProject
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="研究プロジェクト" size="small" />
+        <SectionHeader
+          title="研究プロジェクト"
+          size="small"
+          action={sectionStatus !== undefined && onToggleStatus ? (
+            <SectionCurationToggle status={sectionStatus} onToggle={onToggleStatus} />
+          ) : undefined}
+        />
       </Box>
       {researchProject.map((project, i) => (
         <Accordion key={keys[i]} defaultExpanded={researchProject.length <= 3} slotProps={{ transition: { unmountOnExit: true } }}>
@@ -82,4 +92,4 @@ export const ResearchProjectSection = memo(({ draft, onChange }: ResearchProject
       </Button>
     </Paper>
   )
-}, (prev, next) => prev.draft.researchProject === next.draft.researchProject)
+}, (prev, next) => prev.draft.researchProject === next.draft.researchProject && prev.sectionStatus === next.sectionStatus)

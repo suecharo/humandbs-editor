@@ -15,15 +15,19 @@ import { memo } from "react"
 
 import { SectionHeader } from "@/components/SectionHeader"
 import { useStableKeys } from "@/hooks/use-stable-keys"
+import type { SectionCurationStatus } from "@/schemas/editor-state"
 import type { Person, Research } from "@/schemas/research"
 import { FORM_FIELD_MAX_WIDTH, FORM_LABEL_SX, SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextField } from "../fields/BilingualTextField"
 import { BilingualTextValueField } from "../fields/BilingualTextValueField"
+import { SectionCurationToggle } from "../SectionCurationToggle"
 
 interface ControlledAccessUserSectionProps {
   draft: Research
   onChange: (updated: Research) => void
+  sectionStatus?: SectionCurationStatus | undefined
+  onToggleStatus?: (() => void) | undefined
 }
 
 const emptyUser: Person = {
@@ -38,7 +42,7 @@ const emptyUser: Person = {
   periodOfDataUse: null,
 }
 
-export const ControlledAccessUserSection = memo(({ draft, onChange }: ControlledAccessUserSectionProps) => {
+export const ControlledAccessUserSection = memo(({ draft, onChange, sectionStatus, onToggleStatus }: ControlledAccessUserSectionProps) => {
   const { controlledAccessUser } = draft
   const { keys, removeKey } = useStableKeys(controlledAccessUser.length)
 
@@ -51,7 +55,13 @@ export const ControlledAccessUserSection = memo(({ draft, onChange }: Controlled
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="制限公開データの利用者一覧" size="small" />
+        <SectionHeader
+          title="制限公開データの利用者一覧"
+          size="small"
+          action={sectionStatus !== undefined && onToggleStatus ? (
+            <SectionCurationToggle status={sectionStatus} onToggle={onToggleStatus} />
+          ) : undefined}
+        />
       </Box>
       {controlledAccessUser.map((user, i) => (
         <Accordion key={keys[i]} defaultExpanded={controlledAccessUser.length <= 3} slotProps={{ transition: { unmountOnExit: true } }}>
@@ -152,4 +162,4 @@ export const ControlledAccessUserSection = memo(({ draft, onChange }: Controlled
       </Button>
     </Paper>
   )
-}, (prev, next) => prev.draft.controlledAccessUser === next.draft.controlledAccessUser)
+}, (prev, next) => prev.draft.controlledAccessUser === next.draft.controlledAccessUser && prev.sectionStatus === next.sectionStatus)
