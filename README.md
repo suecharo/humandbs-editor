@@ -29,7 +29,7 @@ npm install
 npm run dev
 ```
 
-`http://localhost:5173` でアクセスできる。
+`http://localhost:3000` でアクセスできる。
 
 ### Docker
 

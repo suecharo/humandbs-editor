@@ -16,6 +16,6 @@ COPY . .
 ENV HOME=/home/app
 RUN mkdir -p /home/app && chmod 777 /home/app
 
-EXPOSE 3001 5173
+EXPOSE 3000
 
 CMD ["npm", "run", "dev"]
