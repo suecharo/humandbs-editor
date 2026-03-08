@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker/master/packages/core/schema/stryker-core.schema.json",
+  "testRunner": "vitest",
+  "reporters": ["html", "clear-text", "progress"],
+  "mutate": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "server/**/*.ts",
+    "!src/**/*.d.ts",
+    "!src/main.tsx"
+  ]
+}

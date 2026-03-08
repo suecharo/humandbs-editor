@@ -1,0 +1,182 @@
+import fc from "fast-check"
+import { describe, it, expect } from "vitest"
+
+import { ResearchListItemSchema, ResearchSchema } from "../../../src/schemas/research"
+
+const bilingualText = () =>
+  fc.record({
+    ja: fc.option(fc.string(), { nil: null }),
+    en: fc.option(fc.string(), { nil: null }),
+  })
+
+const textValue = () =>
+  fc.record({
+    text: fc.string(),
+    rawHtml: fc.string(),
+  })
+
+const bilingualTextValue = () =>
+  fc.record({
+    ja: fc.option(textValue(), { nil: null }),
+    en: fc.option(textValue(), { nil: null }),
+  })
+
+const urlValue = () =>
+  fc.record({
+    text: fc.string(),
+    url: fc.string(),
+  })
+
+describe("ResearchListItemSchema", () => {
+  it("parses a valid research list item", () => {
+    const item = {
+      humId: "hum0001",
+      title: { ja: "test-ja", en: "test-en" },
+      datasetCount: 3,
+      curationStatus: "uncurated",
+      datePublished: "2024-01-01",
+      dateModified: "2024-01-02",
+    }
+    const result = ResearchListItemSchema.parse(item)
+    expect(result.humId).toBe("hum0001")
+    expect(result.datasetCount).toBe(3)
+  })
+
+  it("rejects missing required fields", () => {
+    expect(() => ResearchListItemSchema.parse({})).toThrow()
+    expect(() => ResearchListItemSchema.parse({ humId: "hum0001" })).toThrow()
+  })
+
+  it("rejects invalid datasetCount type", () => {
+    const item = {
+      humId: "hum0001",
+      title: { ja: null, en: null },
+      datasetCount: "not-a-number",
+      curationStatus: "uncurated",
+      datePublished: "2024-01-01",
+      dateModified: "2024-01-02",
+    }
+    expect(() => ResearchListItemSchema.parse(item)).toThrow()
+  })
+
+  it("accepts nullable title fields", () => {
+    const item = {
+      humId: "hum0001",
+      title: { ja: null, en: null },
+      datasetCount: 0,
+      curationStatus: "curated",
+      datePublished: "2024-01-01",
+      dateModified: "2024-01-02",
+    }
+    const result = ResearchListItemSchema.parse(item)
+    expect(result.title.ja).toBeNull()
+    expect(result.title.en).toBeNull()
+  })
+
+  it("round-trips arbitrary valid data (PBT)", () => {
+    fc.assert(
+      fc.property(
+        fc.record({
+          humId: fc.string({ minLength: 1 }),
+          title: bilingualText(),
+          datasetCount: fc.nat(),
+          curationStatus: fc.string({ minLength: 1 }),
+          datePublished: fc.string({ minLength: 1 }),
+          dateModified: fc.string({ minLength: 1 }),
+        }),
+        (item) => {
+          const parsed = ResearchListItemSchema.parse(item)
+          expect(parsed.humId).toBe(item.humId)
+          expect(parsed.datasetCount).toBe(item.datasetCount)
+        },
+      ),
+    )
+  })
+})
+
+describe("ResearchSchema", () => {
+  it("parses sample hum0001 data", () => {
+    const data = {
+      humId: "hum0001",
+      url: { ja: "https://example.com/ja", en: "https://example.com/en" },
+      title: { ja: "test-ja", en: "test-en" },
+      summary: {
+        aims: { ja: { text: "aims-ja", rawHtml: "" }, en: { text: "aims-en", rawHtml: "" } },
+        methods: { ja: { text: "methods-ja", rawHtml: "" }, en: null },
+        targets: { ja: null, en: { text: "targets-en", rawHtml: "" } },
+        url: { ja: [], en: [] },
+        footers: { ja: [], en: [] },
+      },
+      dataProvider: [],
+      researchProject: [],
+      grant: [],
+      relatedPublication: [],
+      controlledAccessUser: [],
+      versionIds: ["hum0001-v1"],
+      latestVersion: "hum0001-v1",
+      datePublished: "2024-01-01",
+      dateModified: "2024-01-02",
+    }
+    const result = ResearchSchema.parse(data)
+    expect(result.humId).toBe("hum0001")
+    expect(result.versionIds).toHaveLength(1)
+  })
+
+  it("rejects empty object", () => {
+    expect(() => ResearchSchema.parse({})).toThrow()
+  })
+
+  it("round-trips arbitrary valid research data (PBT)", () => {
+    const personArb = fc.record({
+      name: bilingualTextValue(),
+      email: fc.option(fc.string(), { nil: null }),
+      orcid: fc.option(fc.string(), { nil: null }),
+      organization: fc.option(
+        fc.record({
+          name: bilingualTextValue(),
+          address: fc.option(
+            fc.record({ country: fc.option(fc.string(), { nil: null }) }),
+            { nil: null },
+          ),
+        }),
+        { nil: null },
+      ),
+    })
+
+    const researchArb = fc.record({
+      humId: fc.string({ minLength: 1 }),
+      url: bilingualText(),
+      title: bilingualText(),
+      summary: fc.record({
+        aims: bilingualTextValue(),
+        methods: bilingualTextValue(),
+        targets: bilingualTextValue(),
+        url: fc.record({
+          ja: fc.array(urlValue()),
+          en: fc.array(urlValue()),
+        }),
+        footers: fc.record({
+          ja: fc.array(textValue()),
+          en: fc.array(textValue()),
+        }),
+      }),
+      dataProvider: fc.array(personArb, { maxLength: 3 }),
+      researchProject: fc.constant([]),
+      grant: fc.constant([]),
+      relatedPublication: fc.constant([]),
+      controlledAccessUser: fc.constant([]),
+      versionIds: fc.array(fc.string({ minLength: 1 }), { minLength: 1, maxLength: 3 }),
+      latestVersion: fc.string({ minLength: 1 }),
+      datePublished: fc.string({ minLength: 1 }),
+      dateModified: fc.string({ minLength: 1 }),
+    })
+
+    fc.assert(
+      fc.property(researchArb, (data) => {
+        const parsed = ResearchSchema.parse(data)
+        expect(parsed.humId).toBe(data.humId)
+      }),
+      { numRuns: 20 },
+    )
+  })
+})
