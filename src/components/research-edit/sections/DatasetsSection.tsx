@@ -24,7 +24,7 @@ export const DatasetsSection = ({ versions, latestVersionId }: DatasetsSectionPr
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="Datasets" size="small" />
+        <SectionHeader title="データセット" size="small" />
       </Box>
       <TableContainer>
         <Table>

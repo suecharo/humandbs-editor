@@ -85,7 +85,7 @@ export const DataProviderSection = ({ draft, onChange }: DataProviderSectionProp
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="Data Provider" size="small" />
+        <SectionHeader title="提供者情報" size="small" />
       </Box>
       {dataProvider.map((person, i) => (
         <Accordion key={keys[i]} defaultExpanded={dataProvider.length <= 3}>

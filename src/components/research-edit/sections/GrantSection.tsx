@@ -42,7 +42,7 @@ export const GrantSection = ({ draft, onChange }: GrantSectionProps) => {
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="Grant" size="small" />
+        <SectionHeader title="科研費/助成金" size="small" />
       </Box>
       {grant.map((g, i) => (
         <Accordion key={keys[i]} defaultExpanded={grant.length <= 3}>

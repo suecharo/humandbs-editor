@@ -42,7 +42,7 @@ export const PublicationSection = ({ draft, onChange }: PublicationSectionProps)
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="Related Publication" size="small" />
+        <SectionHeader title="関連論文" size="small" />
       </Box>
       {relatedPublication.map((pub, i) => (
         <Accordion key={keys[i]} defaultExpanded={relatedPublication.length <= 3}>

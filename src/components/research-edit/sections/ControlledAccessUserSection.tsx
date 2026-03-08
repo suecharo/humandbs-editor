@@ -50,7 +50,7 @@ export const ControlledAccessUserSection = ({ draft, onChange }: ControlledAcces
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="Controlled Access User" size="small" />
+        <SectionHeader title="制限公開データの利用者一覧" size="small" />
       </Box>
       {controlledAccessUser.map((user, i) => (
         <Accordion key={keys[i]} defaultExpanded={controlledAccessUser.length <= 3}>

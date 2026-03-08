@@ -15,10 +15,10 @@ interface TitleSectionProps {
 export const TitleSection = ({ draft, onChange }: TitleSectionProps) => (
   <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
     <Box sx={{ mb: SUBSECTION_GAP }}>
-      <SectionHeader title="Title" size="small" />
+      <SectionHeader title="タイトル" size="small" />
     </Box>
     <BilingualTextField
-      label="Title"
+      label="タイトル"
       value={draft.title}
       onChange={(title) => onChange({ ...draft, title })}
     />

@@ -40,7 +40,7 @@ export const ResearchProjectSection = ({ draft, onChange }: ResearchProjectSecti
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="Research Project" size="small" />
+        <SectionHeader title="研究プロジェクト" size="small" />
       </Box>
       {researchProject.map((project, i) => (
         <Accordion key={keys[i]} defaultExpanded={researchProject.length <= 3}>

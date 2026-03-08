@@ -18,20 +18,20 @@ export const SummarySection = ({ draft, onChange }: SummarySectionProps) => {
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader title="Summary" size="small" />
+        <SectionHeader title="研究内容の概要" size="small" />
       </Box>
       <BilingualTextValueField
-        label="Aims"
+        label="目的"
         value={summary.aims}
         onChange={(aims) => onChange({ ...draft, summary: { ...summary, aims } })}
       />
       <BilingualTextValueField
-        label="Methods"
+        label="方法"
         value={summary.methods}
         onChange={(methods) => onChange({ ...draft, summary: { ...summary, methods } })}
       />
       <BilingualTextValueField
-        label="Targets"
+        label="対象"
         value={summary.targets}
         onChange={(targets) => onChange({ ...draft, summary: { ...summary, targets } })}
       />
