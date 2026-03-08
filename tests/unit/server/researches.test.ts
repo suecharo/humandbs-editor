@@ -27,7 +27,6 @@ const mockResearch = (humId: string) => ({
     methods: { ja: { text: "", rawHtml: "" }, en: { text: "", rawHtml: "" } },
     targets: { ja: { text: "", rawHtml: "" }, en: { text: "", rawHtml: "" } },
     url: { ja: [], en: [] },
-    footers: { ja: [], en: [] },
   },
   dataProvider: [],
   researchProject: [],

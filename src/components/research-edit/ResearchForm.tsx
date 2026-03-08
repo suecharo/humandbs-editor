@@ -8,7 +8,6 @@ import { SECTION_GAP } from "@/theme"
 import { ControlledAccessUserSection } from "./sections/ControlledAccessUserSection"
 import { DataProviderSection } from "./sections/DataProviderSection"
 import { DatasetsSection } from "./sections/DatasetsSection"
-import { FootersSection } from "./sections/FootersSection"
 import { GrantSection } from "./sections/GrantSection"
 import { PublicationSection } from "./sections/PublicationSection"
 import { ResearchProjectSection } from "./sections/ResearchProjectSection"
@@ -28,7 +27,6 @@ export const ResearchForm = ({ versions }: ResearchFormProps) => {
     <Box sx={{ display: "flex", flexDirection: "column", gap: SECTION_GAP }}>
       <TitleSection draft={draft} onChange={setDraft} />
       <SummarySection draft={draft} onChange={setDraft} />
-      <FootersSection draft={draft} onChange={setDraft} />
       <DatasetsSection versions={versions} latestVersionId={draft.latestVersion} />
       <DataProviderSection draft={draft} onChange={setDraft} />
       <ResearchProjectSection draft={draft} onChange={setDraft} />

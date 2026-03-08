@@ -50,17 +50,6 @@ export const ResearchPreview = ({ lang }: { lang: Lang }) => {
         <TextValuePreview label="Targets" value={draft.summary.targets} lang={lang} />
       </Paper>
 
-      {draft.summary.footers[lang].length > 0 && (
-        <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
-          <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>Footers</Typography>
-          {draft.summary.footers[lang].map((f, i) => (
-            <Typography key={i} variant="body1" sx={{ mb: 0.5 }}>
-              {f.text || "-"}
-            </Typography>
-          ))}
-        </Paper>
-      )}
-
       {draft.dataProvider.length > 0 && (
         <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
           <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>Data Provider</Typography>

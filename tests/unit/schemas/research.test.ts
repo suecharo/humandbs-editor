@@ -119,7 +119,6 @@ describe("ResearchSchema", () => {
         methods: { ja: { text: "methods-ja", rawHtml: "" }, en: null },
         targets: { ja: null, en: { text: "targets-en", rawHtml: "" } },
         url: { ja: [], en: [] },
-        footers: { ja: [], en: [] },
       },
       dataProvider: [],
       researchProject: [],
@@ -190,10 +189,6 @@ describe("ResearchSchema", () => {
         url: fc.record({
           ja: fc.array(urlValue()),
           en: fc.array(urlValue()),
-        }),
-        footers: fc.record({
-          ja: fc.array(textValue()),
-          en: fc.array(textValue()),
         }),
       }),
       dataProvider: fc.array(personArb, { maxLength: 3 }),

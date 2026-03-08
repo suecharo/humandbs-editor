@@ -14,7 +14,6 @@ const makeResearch = (overrides: Partial<Research> = {}): Research => ({
     methods: { ja: { text: "methods ja", rawHtml: "" }, en: { text: "methods en", rawHtml: "" } },
     targets: { ja: { text: "targets ja", rawHtml: "" }, en: { text: "targets en", rawHtml: "" } },
     url: { ja: [], en: [] },
-    footers: { ja: [], en: [] },
   },
   dataProvider: [],
   researchProject: [],

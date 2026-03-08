@@ -5,7 +5,6 @@ import {
   BilingualTextValueSchema,
   BilingualUrlValueSchema,
   PeriodOfDataUseSchema,
-  TextValueSchema,
   UrlValueSchema,
 } from "./common"
 
@@ -52,10 +51,6 @@ export const SummarySchema = z.object({
   url: z.object({
     ja: z.array(UrlValueSchema),
     en: z.array(UrlValueSchema),
-  }),
-  footers: z.object({
-    ja: z.array(TextValueSchema),
-    en: z.array(TextValueSchema),
   }),
 })
 export type Summary = z.infer<typeof SummarySchema>
