@@ -17,6 +17,7 @@ interface TabbedPaneProps {
   humId: string
   originalUrls: { ja: string | null; en: string | null }
   showOriginalIframe?: boolean
+  initialTabIndex?: number
 }
 
 const OriginalFallback = ({ url }: { url: string }) => (
@@ -71,8 +72,8 @@ const OriginalTabContent = ({
   )
 }
 
-export const TabbedPane = ({ prefix, form, previewJa, previewEn, humId, originalUrls, showOriginalIframe = true }: TabbedPaneProps) => {
-  const [tabIndex, setTabIndex] = useState(0)
+export const TabbedPane = ({ prefix, form, previewJa, previewEn, humId, originalUrls, showOriginalIframe = true, initialTabIndex = 0 }: TabbedPaneProps) => {
+  const [tabIndex, setTabIndex] = useState(initialTabIndex)
   const proxyUrl = (lang: "ja" | "en") =>
     `/api/researches/${encodeURIComponent(humId)}/original?lang=${lang}`
 
@@ -86,7 +87,7 @@ export const TabbedPane = ({ prefix, form, previewJa, previewEn, humId, original
         <Tab label="Original En" {...tabA11yProps(prefix, 4)} />
       </Tabs>
       <Box sx={{ flex: 1, overflow: "hidden" }}>
-        <TabPanel value={tabIndex} index={0} prefix={prefix}>
+        <TabPanel value={tabIndex} index={0} prefix={prefix} lazy>
           <Box sx={{ overflow: "auto", height: "100%", p: TAB_CONTENT_PADDING }}>
             {form}
           </Box>

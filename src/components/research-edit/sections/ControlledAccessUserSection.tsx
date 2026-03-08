@@ -11,6 +11,7 @@ import IconButton from "@mui/material/IconButton"
 import Paper from "@mui/material/Paper"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
+import { memo } from "react"
 
 import { SectionHeader } from "@/components/SectionHeader"
 import { useStableKeys } from "@/hooks/use-stable-keys"
@@ -37,7 +38,7 @@ const emptyUser: Person = {
   periodOfDataUse: null,
 }
 
-export const ControlledAccessUserSection = ({ draft, onChange }: ControlledAccessUserSectionProps) => {
+export const ControlledAccessUserSection = memo(({ draft, onChange }: ControlledAccessUserSectionProps) => {
   const { controlledAccessUser } = draft
   const { keys, removeKey } = useStableKeys(controlledAccessUser.length)
 
@@ -53,7 +54,7 @@ export const ControlledAccessUserSection = ({ draft, onChange }: ControlledAcces
         <SectionHeader title="制限公開データの利用者一覧" size="small" />
       </Box>
       {controlledAccessUser.map((user, i) => (
-        <Accordion key={keys[i]} defaultExpanded={controlledAccessUser.length <= 3}>
+        <Accordion key={keys[i]} defaultExpanded={controlledAccessUser.length <= 3} slotProps={{ transition: { unmountOnExit: true } }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
               <Typography variant="body1">
@@ -151,4 +152,4 @@ export const ControlledAccessUserSection = ({ draft, onChange }: ControlledAcces
       </Button>
     </Paper>
   )
-}
+}, (prev, next) => prev.draft.controlledAccessUser === next.draft.controlledAccessUser)

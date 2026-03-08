@@ -10,6 +10,7 @@ import IconButton from "@mui/material/IconButton"
 import Paper from "@mui/material/Paper"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
+import { memo } from "react"
 
 import { SectionHeader } from "@/components/SectionHeader"
 import { useStableKeys } from "@/hooks/use-stable-keys"
@@ -29,7 +30,7 @@ const emptyGrant: Grant = {
   agency: { name: { ja: null, en: null } },
 }
 
-export const GrantSection = ({ draft, onChange }: GrantSectionProps) => {
+export const GrantSection = memo(({ draft, onChange }: GrantSectionProps) => {
   const { grant } = draft
   const { keys, removeKey } = useStableKeys(grant.length)
 
@@ -45,7 +46,7 @@ export const GrantSection = ({ draft, onChange }: GrantSectionProps) => {
         <SectionHeader title="科研費/助成金" size="small" />
       </Box>
       {grant.map((g, i) => (
-        <Accordion key={keys[i]} defaultExpanded={grant.length <= 3}>
+        <Accordion key={keys[i]} defaultExpanded={grant.length <= 3} slotProps={{ transition: { unmountOnExit: true } }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
               <Typography variant="body1">
@@ -102,4 +103,4 @@ export const GrantSection = ({ draft, onChange }: GrantSectionProps) => {
       </Button>
     </Paper>
   )
-}
+}, (prev, next) => prev.draft.grant === next.draft.grant)

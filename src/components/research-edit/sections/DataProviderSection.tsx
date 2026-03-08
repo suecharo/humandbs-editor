@@ -10,6 +10,7 @@ import IconButton from "@mui/material/IconButton"
 import Paper from "@mui/material/Paper"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
+import { memo } from "react"
 
 import { SectionHeader } from "@/components/SectionHeader"
 import { useStableKeys } from "@/hooks/use-stable-keys"
@@ -72,7 +73,7 @@ const PersonFields = ({
   </Box>
 )
 
-export const DataProviderSection = ({ draft, onChange }: DataProviderSectionProps) => {
+export const DataProviderSection = memo(({ draft, onChange }: DataProviderSectionProps) => {
   const { dataProvider } = draft
   const { keys, removeKey } = useStableKeys(dataProvider.length)
 
@@ -88,7 +89,7 @@ export const DataProviderSection = ({ draft, onChange }: DataProviderSectionProp
         <SectionHeader title="提供者情報" size="small" />
       </Box>
       {dataProvider.map((person, i) => (
-        <Accordion key={keys[i]} defaultExpanded={dataProvider.length <= 3}>
+        <Accordion key={keys[i]} defaultExpanded={dataProvider.length <= 3} slotProps={{ transition: { unmountOnExit: true } }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
               <Typography variant="body1">
@@ -122,4 +123,4 @@ export const DataProviderSection = ({ draft, onChange }: DataProviderSectionProp
       </Button>
     </Paper>
   )
-}
+}, (prev, next) => prev.draft.dataProvider === next.draft.dataProvider)

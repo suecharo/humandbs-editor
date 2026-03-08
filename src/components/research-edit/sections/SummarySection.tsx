@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box"
 import Paper from "@mui/material/Paper"
+import { memo } from "react"
 
 import { SectionHeader } from "@/components/SectionHeader"
 import type { Research } from "@/schemas/research"
@@ -12,7 +13,7 @@ interface SummarySectionProps {
   onChange: (updated: Research) => void
 }
 
-export const SummarySection = ({ draft, onChange }: SummarySectionProps) => {
+export const SummarySection = memo(({ draft, onChange }: SummarySectionProps) => {
   const { summary } = draft
 
   return (
@@ -37,4 +38,4 @@ export const SummarySection = ({ draft, onChange }: SummarySectionProps) => {
       />
     </Paper>
   )
-}
+}, (prev, next) => prev.draft.summary === next.draft.summary)

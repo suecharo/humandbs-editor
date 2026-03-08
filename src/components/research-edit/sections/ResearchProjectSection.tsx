@@ -9,6 +9,7 @@ import Button from "@mui/material/Button"
 import IconButton from "@mui/material/IconButton"
 import Paper from "@mui/material/Paper"
 import Typography from "@mui/material/Typography"
+import { memo } from "react"
 
 import { SectionHeader } from "@/components/SectionHeader"
 import { useStableKeys } from "@/hooks/use-stable-keys"
@@ -27,7 +28,7 @@ const emptyProject: ResearchProject = {
   url: null,
 }
 
-export const ResearchProjectSection = ({ draft, onChange }: ResearchProjectSectionProps) => {
+export const ResearchProjectSection = memo(({ draft, onChange }: ResearchProjectSectionProps) => {
   const { researchProject } = draft
   const { keys, removeKey } = useStableKeys(researchProject.length)
 
@@ -43,7 +44,7 @@ export const ResearchProjectSection = ({ draft, onChange }: ResearchProjectSecti
         <SectionHeader title="研究プロジェクト" size="small" />
       </Box>
       {researchProject.map((project, i) => (
-        <Accordion key={keys[i]} defaultExpanded={researchProject.length <= 3}>
+        <Accordion key={keys[i]} defaultExpanded={researchProject.length <= 3} slotProps={{ transition: { unmountOnExit: true } }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
               <Typography variant="body1">
@@ -81,4 +82,4 @@ export const ResearchProjectSection = ({ draft, onChange }: ResearchProjectSecti
       </Button>
     </Paper>
   )
-}
+}, (prev, next) => prev.draft.researchProject === next.draft.researchProject)

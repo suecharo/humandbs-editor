@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box"
 import Paper from "@mui/material/Paper"
+import { memo } from "react"
 
 import { SectionHeader } from "@/components/SectionHeader"
 import type { Research } from "@/schemas/research"
@@ -12,7 +13,7 @@ interface TitleSectionProps {
   onChange: (updated: Research) => void
 }
 
-export const TitleSection = ({ draft, onChange }: TitleSectionProps) => (
+export const TitleSection = memo(({ draft, onChange }: TitleSectionProps) => (
   <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
     <Box sx={{ mb: SUBSECTION_GAP }}>
       <SectionHeader title="タイトル" size="small" />
@@ -23,4 +24,4 @@ export const TitleSection = ({ draft, onChange }: TitleSectionProps) => (
       onChange={(title) => onChange({ ...draft, title })}
     />
   </Paper>
-)
+), (prev, next) => prev.draft.title === next.draft.title)

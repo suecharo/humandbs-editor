@@ -11,6 +11,7 @@ import IconButton from "@mui/material/IconButton"
 import Paper from "@mui/material/Paper"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
+import { memo } from "react"
 
 import { SectionHeader } from "@/components/SectionHeader"
 import { useStableKeys } from "@/hooks/use-stable-keys"
@@ -29,7 +30,7 @@ const emptyPublication: Publication = {
   doi: null,
 }
 
-export const PublicationSection = ({ draft, onChange }: PublicationSectionProps) => {
+export const PublicationSection = memo(({ draft, onChange }: PublicationSectionProps) => {
   const { relatedPublication } = draft
   const { keys, removeKey } = useStableKeys(relatedPublication.length)
 
@@ -45,7 +46,7 @@ export const PublicationSection = ({ draft, onChange }: PublicationSectionProps)
         <SectionHeader title="関連論文" size="small" />
       </Box>
       {relatedPublication.map((pub, i) => (
-        <Accordion key={keys[i]} defaultExpanded={relatedPublication.length <= 3}>
+        <Accordion key={keys[i]} defaultExpanded={relatedPublication.length <= 3} slotProps={{ transition: { unmountOnExit: true } }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
               <Typography variant="body1">
@@ -104,4 +105,4 @@ export const PublicationSection = ({ draft, onChange }: PublicationSectionProps)
       </Button>
     </Paper>
   )
-}
+}, (prev, next) => prev.draft.relatedPublication === next.draft.relatedPublication)

@@ -108,6 +108,7 @@ export const ResearchEditPage = () => {
               humId={humId}
               originalUrls={{ ja: research?.url.ja ?? null, en: research?.url.en ?? null }}
               showOriginalIframe={debugOriginal !== "off"}
+              initialTabIndex={3}
             />
           }
         />
