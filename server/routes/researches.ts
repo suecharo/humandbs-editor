@@ -1,3 +1,4 @@
+import * as cheerio from "cheerio"
 import { Router } from "express"
 import fs from "node:fs/promises"
 import path from "node:path"
@@ -55,6 +56,112 @@ export const createResearchesRouter = (structuredJsonDir: string): Router => {
       // eslint-disable-next-line no-console
       console.error("Failed to list researches:", error)
       res.status(500).json({ error: "Failed to list researches" })
+    }
+  })
+
+  router.get("/:humId", async (req, res) => {
+    try {
+      const filePath = path.join(structuredJsonDir, "research", `${req.params.humId}.json`)
+      const research = await readJson(filePath, ResearchSchema)
+      res.json(research)
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(`Failed to get research ${req.params.humId}:`, error)
+      res.status(500).json({ error: `Failed to get research ${req.params.humId}` })
+    }
+  })
+
+  router.get("/:humId/versions", async (req, res) => {
+    try {
+      const researchPath = path.join(structuredJsonDir, "research", `${req.params.humId}.json`)
+      const research = await readJson(researchPath, ResearchSchema)
+      const versions = await Promise.all(
+        research.versionIds.map((id) =>
+          readJson(
+            path.join(structuredJsonDir, "research-version", `${id}.json`),
+            ResearchVersionSchema,
+          ),
+        ),
+      )
+      res.json(versions)
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(`Failed to get versions for ${req.params.humId}:`, error)
+      res.status(500).json({ error: `Failed to get versions for ${req.params.humId}` })
+    }
+  })
+
+  router.get("/:humId/original", async (req, res) => {
+    try {
+      const researchPath = path.join(structuredJsonDir, "research", `${req.params.humId}.json`)
+      const research = await readJson(researchPath, ResearchSchema)
+      const originalUrl = research.url.ja
+      if (!originalUrl) {
+        res.status(404).json({ error: "Original URL not found" })
+
+        return
+      }
+
+      const url = new URL(originalUrl)
+      if (url.hostname !== "humandbs.dbcls.jp") {
+        res.status(403).json({ error: "Proxy is restricted to humandbs.dbcls.jp" })
+
+        return
+      }
+
+      const response = await fetch(originalUrl, { redirect: "follow" })
+      if (!response.ok) {
+        res.status(502).json({ error: `Failed to fetch original page: ${response.status}` })
+
+        return
+      }
+
+      const html = await response.text()
+      const $ = cheerio.load(html)
+
+      // Remove header, menu, footer, go-to-top link
+      $("#jsn-header").remove()
+      $("#jsn-menu").remove()
+      $("#jsn-footer").remove()
+      $("#jsn-gotoplink").remove()
+      $("#jsn-pos-user-top").remove()
+
+      // Fix relative URLs to absolute
+      const baseUrl = "https://humandbs.dbcls.jp"
+      $("a[href]").each((_, el) => {
+        const href = $(el).attr("href")
+        if (href && href.startsWith("/")) {
+          $(el).attr("href", `${baseUrl}${href}`)
+        }
+      })
+      $("img[src]").each((_, el) => {
+        const src = $(el).attr("src")
+        if (src && src.startsWith("/")) {
+          $(el).attr("src", `${baseUrl}${src}`)
+        }
+      })
+
+      // Remove inline width from tables
+      $("table[style]").each((_, el) => {
+        const style = $(el).attr("style") ?? ""
+        $(el).attr("style", style.replace(/width:\s*\d+px;?/g, ""))
+      })
+
+      // Inject CSS to adapt to container width
+      $("head").append(`<style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; overflow-x: hidden; }
+        #jsn-page, #jsn-page-inner { width: 100% !important; min-width: 0 !important; margin: 0 !important; padding: 0 8px !important; }
+        table { max-width: 100% !important; width: 100% !important; table-layout: auto; word-break: break-word; }
+        img { max-width: 100%; height: auto; }
+      </style>`)
+
+      res.setHeader("Content-Type", "text/html; charset=utf-8")
+      res.send($.html())
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(`Failed to proxy original page for ${req.params.humId}:`, error)
+      res.status(500).json({ error: `Failed to proxy original page for ${req.params.humId}` })
     }
   })
 

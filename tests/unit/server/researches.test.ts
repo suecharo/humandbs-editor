@@ -63,18 +63,18 @@ interface RouteLayer {
 
 type Handler = (req: Request, res: Response, next: () => void) => Promise<void>
 
-const getHandler = (): Handler => {
+const getHandler = (routePath: string, method = "get"): Handler => {
   const router = createResearchesRouter(STRUCTURED_JSON_DIR)
   const layers = (router as unknown as { stack: RouteLayer[] }).stack
 
   const handle = layers
-    .find((l) => l.route?.path === "/")
+    .find((l) => l.route?.path === routePath)
     ?.route?.stack
-    .find((l) => l.method === "get")
+    .find((l) => l.method === method)
     ?.handle
 
   if (!handle) {
-    throw new Error("GET / handler not found on router")
+    throw new Error(`${method.toUpperCase()} ${routePath} handler not found on router`)
   }
 
   return handle
@@ -103,7 +103,7 @@ describe("GET /api/researches", () => {
       return JSON.stringify(mockResearch(basename))
     })
 
-    const handler = getHandler()
+    const handler = getHandler("/")
     expect(handler).toBeDefined()
 
     const req = {} as Request
@@ -136,7 +136,7 @@ describe("GET /api/researches", () => {
       return JSON.stringify(mockResearch("hum0001"))
     })
 
-    const handler = getHandler()
+    const handler = getHandler("/")
     const req = {} as Request
     const json = vi.fn()
     const res = { json, status: vi.fn().mockReturnThis() } as unknown as Response
@@ -150,7 +150,7 @@ describe("GET /api/researches", () => {
   it("returns 500 when readdir fails", async () => {
     mockReaddir.mockRejectedValue(new Error("ENOENT"))
 
-    const handler = getHandler()
+    const handler = getHandler("/")
     const req = {} as Request
     const json = vi.fn()
     const status = vi.fn().mockReturnThis()
@@ -176,7 +176,7 @@ describe("GET /api/researches", () => {
       return JSON.stringify(mockResearch("hum0001"))
     })
 
-    const handler = getHandler()
+    const handler = getHandler("/")
     const req = {} as Request
     const json = vi.fn()
     const res = { json, status: vi.fn().mockReturnThis() } as unknown as Response
@@ -185,5 +185,87 @@ describe("GET /api/researches", () => {
 
     const items = json.mock.calls[0]![0] as { datasetCount: number }[]
     expect(items[0]!.datasetCount).toBe(0)
+  })
+})
+
+describe("GET /api/researches/:humId", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("returns a single research by humId", async () => {
+    const research = mockResearch("hum0001")
+    mockReadFile.mockResolvedValue(JSON.stringify(research))
+
+    const handler = getHandler("/:humId")
+    const req = { params: { humId: "hum0001" } } as unknown as Request
+    const json = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis() } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(json).toHaveBeenCalledTimes(1)
+    const result = json.mock.calls[0]![0] as { humId: string }
+    expect(result.humId).toBe("hum0001")
+  })
+
+  it("returns 500 when file does not exist", async () => {
+    mockReadFile.mockRejectedValue(new Error("ENOENT"))
+
+    const handler = getHandler("/:humId")
+    const req = { params: { humId: "hum9999" } } as unknown as Request
+    const json = vi.fn()
+    const status = vi.fn().mockReturnThis()
+    const res = { json, status } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(status).toHaveBeenCalledWith(500)
+  })
+})
+
+describe("GET /api/researches/:humId/versions", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("returns version array for a research", async () => {
+    const research = mockResearch("hum0001")
+    const version = mockResearchVersion("hum0001", 2)
+
+    mockReadFile.mockImplementation(async (filePath: string) => {
+      if (filePath.includes("research-version")) {
+        return JSON.stringify(version)
+      }
+
+      return JSON.stringify(research)
+    })
+
+    const handler = getHandler("/:humId/versions")
+    const req = { params: { humId: "hum0001" } } as unknown as Request
+    const json = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis() } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(json).toHaveBeenCalledTimes(1)
+    const versions = json.mock.calls[0]![0] as { humVersionId: string; datasets: unknown[] }[]
+    expect(versions).toHaveLength(1)
+    expect(versions[0]!.humVersionId).toBe("hum0001-v1")
+    expect(versions[0]!.datasets).toHaveLength(2)
+  })
+
+  it("returns 500 when research file does not exist", async () => {
+    mockReadFile.mockRejectedValue(new Error("ENOENT"))
+
+    const handler = getHandler("/:humId/versions")
+    const req = { params: { humId: "hum9999" } } as unknown as Request
+    const json = vi.fn()
+    const status = vi.fn().mockReturnThis()
+    const res = { json, status } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(status).toHaveBeenCalledWith(500)
   })
 })

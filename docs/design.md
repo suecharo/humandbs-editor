@@ -162,64 +162,11 @@ humandbs と同じ Keycloak インスタンスを OIDC で利用する。
 
 ## 画面構成
 
-### 一覧画面 (`/`)
-
-research の一覧を表示する。
-
-| 表示項目 | 説明 |
-|---|---|
-| humId | research の識別子 |
-| title (ja/en) | 研究タイトル |
-| dataset 数 | 紐づく dataset の件数 |
-| curation status | uncurated / in-progress / curated |
-
-機能:
-
-- curation status でフィルタ
-- humId / title でテキスト検索（クライアントサイドフィルタ）
-- research をクリックして編集画面へ遷移
-
-### research 編集画面 (`/research/:humId`)
-
-1 つの research の全情報をセクション分けで表示・編集する。
-
-| セクション | 内容 | 編集可否 |
+| 画面 | パス | 仕様書 |
 |---|---|---|
-| 基本情報 | humId, URL | read-only |
-| タイトル | title (ja/en) | editable |
-| サマリー | aims, methods, targets, footers (ja/en) | editable |
-| データ提供者 | name, email, orcid, organization | editable, 行追加/削除可 |
-| 研究プロジェクト | name, url | editable, 行追加/削除可 |
-| 助成金 | grantId, title, agency | editable, 行追加/削除可 |
-| 関連論文 | title, doi (datasetIds は read-only) | editable, 行追加/削除可 |
-| データ利用者 | name, organization, researchTitle, period (datasetIds は read-only) | editable, 行追加/削除可 |
-| バージョン履歴 | version 一覧 (releaseNote は editable) | 部分的に editable |
-| データセット一覧 | 紐づく dataset の一覧。追加・削除可。クリックで dataset 編集画面へ | editable |
-| curation status | research 全体の curation マーク | editable |
-
-### dataset 編集画面 (`/dataset/:datasetId`)
-
-| セクション | 内容 | 編集可否 |
-|---|---|---|
-| 基本情報 | datasetId, version, humId | read-only |
-| データセット情報 | typeOfData, criteria, releaseDate | editable |
-| experiments | 各 experiment のメタデータ | editable |
-| curation status | dataset / experiment 単位の curation マーク | editable |
-
-#### experiment 編集の widget
-
-複雑なフィールドには専用 widget を提供する:
-
-| フィールド | widget |
-|---|---|
-| diseases | disease 名 + ICD-10 コードのペア入力 |
-| platforms | vendor + model のペア入力 |
-| assayType, tissues, cellLine, population | タグ入力 (既存 facet 値から autocomplete + 自由入力) |
-| sex, healthStatus, isTumor, subjectCountType, readType, ageGroup | ドロップダウン (enum) |
-| subjectCount, readLength, sequencingDepth, targetCoverage, dataVolumeGb | 数値入力 |
-| hasPhenotypeData | チェックボックス |
-| fileTypes, processedDataTypes, referenceGenome | タグ入力 (既存 facet 値から autocomplete + 自由入力) |
-| variantCounts | snv/indel/cnv/sv/total の数値入力グループ |
+| 一覧画面 | `/` | [research-list](views/research-list.md) |
+| research 編集画面 | `/research/:humId` | [research-edit](views/research-edit.md) |
+| dataset 編集画面 | `/dataset/:datasetId` | dataset-edit (未作成) |
 
 ### 編集ワークフロー
 
@@ -252,6 +199,7 @@ load  ->  in-memory  -> diff  ->  PUT /api/...
 | GET | `/api/researches/:humId` | research 詳細 (全フィールド) |
 | PUT | `/api/researches/:humId` | research 更新 (editable フィールドのみ) |
 | DELETE | `/api/researches/:humId` | research 削除 (JSON ファイルを削除) |
+| GET | `/api/researches/:humId/original` | humandbs 元ページをプロキシ (header/footer 除去) |
 
 ### Research Version
 

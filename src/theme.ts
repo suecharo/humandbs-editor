@@ -15,6 +15,30 @@ export const CONTENT_MARGIN_Y = 3
 export const FOOTER_BG = "#1E293B"
 export const FOOTER_TEXT_COLOR = "#94A3B8"
 
+export const FORM_FIELD_MAX_WIDTH = "600px"
+
+export const TAB_BAR_SX = { borderBottom: 1, borderColor: "divider", px: 1 } as const
+export const TAB_CONTENT_PADDING = 3
+
+export const MONOSPACE_FONT_FAMILY =
+  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
+
+export const MONOSPACE_ID_SX = {
+  fontFamily: MONOSPACE_FONT_FAMILY,
+  fontSize: "0.8125rem",
+} as const
+
+// Spacing hierarchy (aligned with dfast naming)
+export const SECTION_GAP = 3
+export const SUBSECTION_GAP = 2
+export const FIELD_GROUP_GAP = 1.5
+
+// Form label
+export const FORM_LABEL_SX = {
+  fontWeight: 500,
+  color: "text.secondary",
+} as const
+
 const FONT_FAMILY = "'Inter', system-ui, -apple-system, sans-serif"
 
 export const theme = createTheme({
@@ -93,6 +117,11 @@ export const theme = createTheme({
         root: {
           borderRadius: 0,
         },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: { textTransform: "none" },
       },
     },
     MuiButton: {

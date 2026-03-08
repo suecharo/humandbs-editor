@@ -18,11 +18,12 @@ import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
+import { useNavigate } from "@tanstack/react-router"
 import { useState, useMemo } from "react"
 
 import { CurationStatusChip } from "../components/CurationStatusChip"
 import { useResearches } from "../hooks/use-researches"
-import { CONTENT_MARGIN_Y } from "../theme"
+import { CONTENT_MARGIN_Y, MONOSPACE_ID_SX } from "../theme"
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
@@ -33,6 +34,7 @@ const STATUS_OPTIONS = [
 
 export const ResearchListPage = () => {
   const { data: researches, isLoading, error } = useResearches()
+  const navigate = useNavigate()
   const [searchText, setSearchText] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
 
@@ -127,8 +129,13 @@ export const ResearchListPage = () => {
             </TableHead>
             <TableBody>
               {filtered.map((r) => (
-                <TableRow key={r.humId} hover>
-                  <TableCell sx={{ fontFamily: "monospace", fontSize: "0.8125rem" }}>
+                <TableRow
+                  key={r.humId}
+                  hover
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => navigate({ to: "/research/$humId", params: { humId: r.humId } })}
+                >
+                  <TableCell sx={MONOSPACE_ID_SX}>
                     {r.humId}
                   </TableCell>
                   <TableCell>{r.title.ja ?? "-"}</TableCell>
