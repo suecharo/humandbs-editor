@@ -22,21 +22,30 @@ fullScreenLayout (AppHeader + full-height main、footer なし) を使用。
 - フォールバックとして「新しいタブで開く」リンクを表示する
 - フォームの変更はプレビューにリアルタイム反映される (Jotai atom 共有)
 
+## 基本情報カード
+
+パンくずリストとタブの間に `BasicInfoSection` を `Container` (`maxWidth="lg"`) 内に配置する (タブ内には含めない)。
+左右ペイン共通の情報であり、タブ切り替えに関係なく常に表示される。
+
+- 見出し: `{humId} 編集` (`SectionHeader` default size, `component="h1"`)
+- URL (ja/en), datePublished, dateModified を read-only で表示
+- バージョン履歴テーブル (version, releaseDate, datasets 数)
+
 ## セクション一覧
+
+セクションの順序は humandbs の元ページ (`humandbs.dbcls.jp`) に合わせる。
 
 | セクション | コンポーネント | 内容 | 編集可否 |
 |---|---|---|---|
-| 基本情報 | `BasicInfoSection` | humId, URL | read-only |
 | タイトル | `TitleSection` | title (ja/en) | editable |
 | サマリー | `SummarySection` | aims, methods, targets | editable |
 | フッター | `FootersSection` | footers ja/en (TextValue 配列) | editable, 行追加/削除 |
+| データセット一覧 | `DatasetsSection` | dataset 一覧 | read-only |
 | データ提供者 | `DataProviderSection` | Person 配列 | editable, 行追加/削除 |
 | 研究プロジェクト | `ResearchProjectSection` | ResearchProject 配列 | editable, 行追加/削除 |
 | 助成金 | `GrantSection` | Grant 配列 | editable, 行追加/削除 |
 | 関連論文 | `PublicationSection` | Publication 配列 (datasetIds は read-only) | editable, 行追加/削除 |
 | データ利用者 | `ControlledAccessUserSection` | Person 配列 (datasetIds は read-only) | editable, 行追加/削除 |
-| バージョン履歴 | `VersionsSection` | version 一覧 | read-only |
-| データセット一覧 | `DatasetsSection` | dataset 一覧 | read-only |
 
 ## 状態管理
 

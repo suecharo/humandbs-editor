@@ -6,13 +6,8 @@ import Typography from "@mui/material/Typography"
 import { useAtomValue } from "jotai"
 
 import type { BilingualText, BilingualTextValue } from "@/schemas/common"
-import type { ResearchVersion } from "@/schemas/research-version"
 import { researchDraftAtom } from "@/stores/research-edit"
-import { FIELD_GROUP_GAP, FORM_LABEL_SX, MONOSPACE_FONT_FAMILY, MONOSPACE_ID_SX, SECTION_GAP, SUBSECTION_GAP } from "@/theme"
-
-interface ResearchPreviewProps {
-  versions: ResearchVersion[]
-}
+import { FIELD_GROUP_GAP, FORM_LABEL_SX, SECTION_GAP, SUBSECTION_GAP } from "@/theme"
 
 const BilingualTextPreview = ({ label, value }: { label: string; value: BilingualText }) => (
   <Box sx={{ mb: FIELD_GROUP_GAP }}>
@@ -54,26 +49,13 @@ const BilingualTextValuePreview = ({ label, value }: { label: string; value: Bil
   </Box>
 )
 
-export const ResearchPreview = ({ versions }: ResearchPreviewProps) => {
+export const ResearchPreview = () => {
   const draft = useAtomValue(researchDraftAtom)
 
   if (!draft) return null
 
-  const latestVersion = versions.find((v) => v.humVersionId === draft.latestVersion) ?? versions.at(-1)
-
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: SECTION_GAP }}>
-      <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
-        <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>Basic Info</Typography>
-        <Typography variant="body1" sx={{ ...MONOSPACE_ID_SX, mb: 1 }}>
-          {draft.humId}
-        </Typography>
-        <BilingualTextPreview label="URL" value={draft.url} />
-        <Typography variant="body2" color="text.secondary">
-          Published: {draft.datePublished} / Modified: {draft.dateModified}
-        </Typography>
-      </Paper>
-
       <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
         <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>Title</Typography>
         <BilingualTextPreview label="Title" value={draft.title} />
@@ -197,20 +179,6 @@ export const ResearchPreview = ({ versions }: ResearchPreviewProps) => {
         </Paper>
       )}
 
-      {latestVersion && (
-        <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
-          <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>
-            Versions ({versions.length})
-          </Typography>
-          {versions.map((v) => (
-            <Box key={v.humVersionId} sx={{ mb: 1 }}>
-              <Typography variant="body1" sx={{ fontFamily: MONOSPACE_FONT_FAMILY }}>
-                {v.version} ({v.versionReleaseDate}) - {v.datasets.length} datasets
-              </Typography>
-            </Box>
-          ))}
-        </Paper>
-      )}
     </Box>
   )
 }

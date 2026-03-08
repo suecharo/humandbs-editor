@@ -3,19 +3,23 @@ import Alert from "@mui/material/Alert"
 import Box from "@mui/material/Box"
 import Breadcrumbs from "@mui/material/Breadcrumbs"
 import CircularProgress from "@mui/material/CircularProgress"
+import Container from "@mui/material/Container"
 import Typography from "@mui/material/Typography"
 import { Link } from "@tanstack/react-router"
 import { useAtomValue, useSetAtom } from "jotai"
 import { useEffect } from "react"
 
+import { AppFooter } from "../components/layout/AppFooter"
 import { SplitLayout } from "../components/layout/SplitLayout"
 import { ResearchForm } from "../components/research-edit/ResearchForm"
 import { ResearchPreview } from "../components/research-edit/ResearchPreview"
+import { BasicInfoSection } from "../components/research-edit/sections/BasicInfoSection"
 import { TabbedPane } from "../components/research-edit/TabbedPane"
 import { useResearch } from "../hooks/use-research"
 import { useResearchVersions } from "../hooks/use-research-versions"
 import { researchEditRoute } from "../router"
 import { researchDirtyAtom, researchDraftAtom, researchServerAtom } from "../stores/research-edit"
+import { HEADER_HEIGHT, SUBSECTION_GAP } from "../theme"
 
 export const ResearchEditPage = () => {
   const { humId } = researchEditRoute.useParams()
@@ -57,31 +61,38 @@ export const ResearchEditPage = () => {
   }
 
   return (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <Box sx={{ px: 1.5, borderBottom: 1, borderColor: "divider", bgcolor: "background.default", flexShrink: 0 }}>
-        <Breadcrumbs sx={{ py: 0.5 }} separator={<NavigateNextIcon sx={{ fontSize: "0.875rem" }} />}>
-          <Link to="/" style={{ color: "inherit", textDecoration: "none" }}>
-            <Typography variant="body2" sx={{ "&:hover": { textDecoration: "underline" } }}>
-              研究一覧
+    <Box sx={{ height: "100%", overflow: "auto" }}>
+      <Box sx={{ bgcolor: "background.default" }}>
+        <Container sx={{ pt: SUBSECTION_GAP }}>
+          <Breadcrumbs sx={{ mb: SUBSECTION_GAP }} separator={<NavigateNextIcon sx={{ fontSize: "0.875rem" }} />}>
+            <Link to="/" style={{ color: "inherit", textDecoration: "none" }}>
+              <Typography variant="body2" sx={{ "&:hover": { textDecoration: "underline" } }}>
+                研究一覧
+              </Typography>
+            </Link>
+            <Typography variant="body2" color="text.primary" fontWeight={600}>
+              {humId}
             </Typography>
-          </Link>
-          <Typography variant="body2" color="text.primary" fontWeight={600}>
-            {humId}
-          </Typography>
-        </Breadcrumbs>
+          </Breadcrumbs>
+          {research && (
+            <Box sx={{ pb: SUBSECTION_GAP }}>
+              <BasicInfoSection research={research} versions={versions ?? []} />
+            </Box>
+          )}
+        </Container>
       </Box>
       {dirty && (
         <Alert severity="info" sx={{ borderRadius: 0 }}>
           Unsaved changes
         </Alert>
       )}
-      <Box sx={{ flex: 1, overflow: "hidden" }}>
+      <Box sx={{ height: `calc(100vh - ${HEADER_HEIGHT})` }}>
         <SplitLayout
           left={
             <TabbedPane
               prefix="left"
               form={<ResearchForm versions={versions ?? []} />}
-              preview={<ResearchPreview versions={versions ?? []} />}
+              preview={<ResearchPreview />}
               humId={humId}
               originalUrl={research?.url.ja ?? null}
               showOriginalIframe={debugOriginal !== "off"}
@@ -91,7 +102,7 @@ export const ResearchEditPage = () => {
             <TabbedPane
               prefix="right"
               form={<ResearchForm versions={versions ?? []} />}
-              preview={<ResearchPreview versions={versions ?? []} />}
+              preview={<ResearchPreview />}
               humId={humId}
               originalUrl={research?.url.ja ?? null}
               showOriginalIframe={debugOriginal !== "off"}
@@ -99,6 +110,7 @@ export const ResearchEditPage = () => {
           }
         />
       </Box>
+      <AppFooter />
     </Box>
   )
 }
