@@ -52,6 +52,12 @@ const mockResearchVersion = (humId: string, datasetCount: number) => ({
   releaseNote: { ja: { text: "", rawHtml: "" }, en: { text: "", rawHtml: "" } },
 })
 
+const mockDataset = (datasetId: string, version: string, criteria: string) => ({
+  datasetId,
+  version,
+  criteria,
+})
+
 const STRUCTURED_JSON_DIR = "/test/structured-json"
 
 interface RouteLayer {
@@ -83,14 +89,18 @@ const getHandler = (routePath: string, method = "get"): Handler => {
 describe("GET /api/researches", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.spyOn(console, "error").mockImplementation(() => undefined)
   })
 
-  it("returns sorted research list items", async () => {
+  it("returns sorted research list items with accessRestrictions", async () => {
     mockReaddir.mockResolvedValue(["hum0002.json", "hum0001.json", "hum0010.json"])
 
     mockReadFile.mockImplementation(async (filePath: string) => {
       const basename = path.basename(filePath, ".json")
 
+      if (filePath.includes("dataset/")) {
+        return JSON.stringify(mockDataset(basename, "v1", "Controlled-access (Type I)"))
+      }
       if (filePath.includes("research-version")) {
         const humId = basename.replace(/-v\d+$/, "")
 
@@ -114,12 +124,15 @@ describe("GET /api/researches", () => {
     await handler(req, res, vi.fn())
 
     expect(json).toHaveBeenCalledTimes(1)
-    const items = json.mock.calls[0]![0] as { humId: string; datasetCount: number }[]
+    const items = json.mock.calls[0]![0] as { humId: string; datasetCount: number; datasetIds: string[]; versionCount: number; accessRestrictions: string[] }[]
     expect(items).toHaveLength(3)
     expect(items[0]!.humId).toBe("hum0001")
     expect(items[1]!.humId).toBe("hum0002")
     expect(items[2]!.humId).toBe("hum0010")
     expect(items[0]!.datasetCount).toBe(2)
+    expect(items[0]!.datasetIds).toEqual(["JGAD000001", "JGAD000002"])
+    expect(items[0]!.versionCount).toBe(1)
+    expect(items[0]!.accessRestrictions).toEqual(["Controlled-access (Type I)"])
   })
 
   it("returns uncurated status when editor-state is missing", async () => {
@@ -162,7 +175,7 @@ describe("GET /api/researches", () => {
     expect(json).toHaveBeenCalledWith({ error: "Failed to list researches" })
   })
 
-  it("returns dataset count 0 when version file is missing", async () => {
+  it("returns dataset count 0 and empty accessRestrictions when version file is missing", async () => {
     mockReaddir.mockResolvedValue(["hum0001.json"])
 
     mockReadFile.mockImplementation(async (filePath: string) => {
@@ -183,14 +196,18 @@ describe("GET /api/researches", () => {
 
     await handler(req, res, vi.fn())
 
-    const items = json.mock.calls[0]![0] as { datasetCount: number }[]
+    const items = json.mock.calls[0]![0] as { datasetCount: number; datasetIds: string[]; versionCount: number; accessRestrictions: string[] }[]
     expect(items[0]!.datasetCount).toBe(0)
+    expect(items[0]!.datasetIds).toEqual([])
+    expect(items[0]!.versionCount).toBe(1)
+    expect(items[0]!.accessRestrictions).toEqual([])
   })
 })
 
 describe("GET /api/researches/:humId", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.spyOn(console, "error").mockImplementation(() => undefined)
   })
 
   it("returns a single research by humId", async () => {
@@ -222,11 +239,25 @@ describe("GET /api/researches/:humId", () => {
 
     expect(status).toHaveBeenCalledWith(500)
   })
+
+  it("returns 400 for invalid humId format", async () => {
+    const handler = getHandler("/:humId")
+    const req = { params: { humId: "../etc/passwd" } } as unknown as Request
+    const json = vi.fn()
+    const status = vi.fn().mockReturnThis()
+    const res = { json, status } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(status).toHaveBeenCalledWith(400)
+    expect(json).toHaveBeenCalledWith({ error: "Invalid humId format" })
+  })
 })
 
 describe("GET /api/researches/:humId/versions", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.spyOn(console, "error").mockImplementation(() => undefined)
   })
 
   it("returns version array for a research", async () => {

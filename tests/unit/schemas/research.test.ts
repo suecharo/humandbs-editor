@@ -33,6 +33,9 @@ describe("ResearchListItemSchema", () => {
       humId: "hum0001",
       title: { ja: "test-ja", en: "test-en" },
       datasetCount: 3,
+      datasetIds: ["JGAD000001", "JGAD000002", "JGAD000003"],
+      versionCount: 2,
+      accessRestrictions: ["Controlled-access (Type I)"],
       curationStatus: "uncurated",
       datePublished: "2024-01-01",
       dateModified: "2024-01-02",
@@ -40,6 +43,8 @@ describe("ResearchListItemSchema", () => {
     const result = ResearchListItemSchema.parse(item)
     expect(result.humId).toBe("hum0001")
     expect(result.datasetCount).toBe(3)
+    expect(result.versionCount).toBe(2)
+    expect(result.accessRestrictions).toEqual(["Controlled-access (Type I)"])
   })
 
   it("rejects missing required fields", () => {
@@ -52,6 +57,9 @@ describe("ResearchListItemSchema", () => {
       humId: "hum0001",
       title: { ja: null, en: null },
       datasetCount: "not-a-number",
+      datasetIds: [],
+      versionCount: 1,
+      accessRestrictions: [],
       curationStatus: "uncurated",
       datePublished: "2024-01-01",
       dateModified: "2024-01-02",
@@ -64,6 +72,9 @@ describe("ResearchListItemSchema", () => {
       humId: "hum0001",
       title: { ja: null, en: null },
       datasetCount: 0,
+      datasetIds: [],
+      versionCount: 1,
+      accessRestrictions: [],
       curationStatus: "curated",
       datePublished: "2024-01-01",
       dateModified: "2024-01-02",
@@ -80,6 +91,9 @@ describe("ResearchListItemSchema", () => {
           humId: fc.string({ minLength: 1 }),
           title: bilingualText(),
           datasetCount: fc.nat(),
+          datasetIds: fc.array(fc.string()),
+          versionCount: fc.nat({ max: 100 }),
+          accessRestrictions: fc.array(fc.string()),
           curationStatus: fc.string({ minLength: 1 }),
           datePublished: fc.string({ minLength: 1 }),
           dateModified: fc.string({ minLength: 1 }),
@@ -143,6 +157,28 @@ describe("ResearchSchema", () => {
       ),
     })
 
+    const researchProjectArb = fc.record({
+      name: bilingualTextValue(),
+      url: fc.option(
+        fc.record({
+          ja: fc.option(urlValue(), { nil: null }),
+          en: fc.option(urlValue(), { nil: null }),
+        }),
+        { nil: null },
+      ),
+    })
+
+    const grantArb = fc.record({
+      id: fc.array(fc.string(), { maxLength: 3 }),
+      title: bilingualText(),
+      agency: fc.record({ name: bilingualText() }),
+    })
+
+    const publicationArb = fc.record({
+      title: bilingualText(),
+      doi: fc.option(fc.string(), { nil: null }),
+    })
+
     const researchArb = fc.record({
       humId: fc.string({ minLength: 1 }),
       url: bilingualText(),
@@ -161,10 +197,10 @@ describe("ResearchSchema", () => {
         }),
       }),
       dataProvider: fc.array(personArb, { maxLength: 3 }),
-      researchProject: fc.constant([]),
-      grant: fc.constant([]),
-      relatedPublication: fc.constant([]),
-      controlledAccessUser: fc.constant([]),
+      researchProject: fc.array(researchProjectArb, { maxLength: 2 }),
+      grant: fc.array(grantArb, { maxLength: 2 }),
+      relatedPublication: fc.array(publicationArb, { maxLength: 2 }),
+      controlledAccessUser: fc.array(personArb, { maxLength: 2 }),
       versionIds: fc.array(fc.string({ minLength: 1 }), { minLength: 1, maxLength: 3 }),
       latestVersion: fc.string({ minLength: 1 }),
       datePublished: fc.string({ minLength: 1 }),

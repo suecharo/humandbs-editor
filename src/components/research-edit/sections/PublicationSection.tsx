@@ -12,6 +12,8 @@ import Paper from "@mui/material/Paper"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 
+import { SectionHeader } from "@/components/SectionHeader"
+import { useStableKeys } from "@/hooks/use-stable-keys"
 import type { Publication, Research } from "@/schemas/research"
 import { FORM_FIELD_MAX_WIDTH, FORM_LABEL_SX, SUBSECTION_GAP } from "@/theme"
 
@@ -29,6 +31,7 @@ const emptyPublication: Publication = {
 
 export const PublicationSection = ({ draft, onChange }: PublicationSectionProps) => {
   const { relatedPublication } = draft
+  const { keys, removeKey } = useStableKeys(relatedPublication.length)
 
   const updateItem = (index: number, updated: Publication) => {
     const next = [...relatedPublication]
@@ -38,9 +41,11 @@ export const PublicationSection = ({ draft, onChange }: PublicationSectionProps)
 
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
-      <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>Related Publication</Typography>
+      <Box sx={{ mb: SUBSECTION_GAP }}>
+        <SectionHeader title="Related Publication" size="small" />
+      </Box>
       {relatedPublication.map((pub, i) => (
-        <Accordion key={i} defaultExpanded={relatedPublication.length <= 3}>
+        <Accordion key={keys[i]} defaultExpanded={relatedPublication.length <= 3}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
               <Typography variant="body1">
@@ -51,6 +56,7 @@ export const PublicationSection = ({ draft, onChange }: PublicationSectionProps)
                 color="error"
                 onClick={(e) => {
                   e.stopPropagation()
+                  removeKey(i)
                   onChange({ ...draft, relatedPublication: relatedPublication.filter((_, idx) => idx !== i) })
                 }}
               >

@@ -2,11 +2,15 @@ import * as cheerio from "cheerio"
 import { Router } from "express"
 import fs from "node:fs/promises"
 import path from "node:path"
+import { z } from "zod/v4"
 
+import { CriteriaCanonicalSchema } from "../../src/schemas/common"
 import { ResearchSchema } from "../../src/schemas/research"
 import { ResearchVersionSchema } from "../../src/schemas/research-version"
 import { readEditorState } from "../utils/editor-state"
 import { readJson } from "../utils/read-json"
+
+const HumIdSchema = z.string().regex(/^hum\d+$/)
 
 export const createResearchesRouter = (structuredJsonDir: string): Router => {
   const router = Router()
@@ -24,13 +28,36 @@ export const createResearchesRouter = (structuredJsonDir: string): Router => {
           const filePath = path.join(researchDir, file)
           const research = await readJson(filePath, ResearchSchema)
 
-          // Read latest research-version to get dataset count
+          // Read latest research-version to get dataset count, IDs, and criteria
           let datasetCount = 0
+          const datasetIds: string[] = []
+          const criteriaSet = new Set<string>()
           try {
             const versionFile = `${research.latestVersion}.json`
             const versionPath = path.join(structuredJsonDir, "research-version", versionFile)
             const version = await readJson(versionPath, ResearchVersionSchema)
             datasetCount = version.datasets.length
+            for (const ds of version.datasets) {
+              datasetIds.push(ds.datasetId)
+            }
+
+            // Read each dataset to collect unique criteria values
+            const DatasetCriteriaSchema = z.object({ criteria: CriteriaCanonicalSchema })
+            await Promise.all(
+              version.datasets.map(async (ds) => {
+                try {
+                  const dsFile = `${ds.datasetId}-${ds.version}.json`
+                  const dsPath = path.join(structuredJsonDir, "dataset", dsFile)
+                  const raw: unknown = JSON.parse(await fs.readFile(dsPath, "utf-8"))
+                  const parsed = DatasetCriteriaSchema.safeParse(raw)
+                  if (parsed.success) {
+                    criteriaSet.add(parsed.data.criteria)
+                  }
+                } catch {
+                  // Skip unreadable dataset files
+                }
+              }),
+            )
           } catch {
             // If version file doesn't exist, dataset count remains 0
           }
@@ -41,6 +68,9 @@ export const createResearchesRouter = (structuredJsonDir: string): Router => {
             humId: research.humId,
             title: research.title,
             datasetCount,
+            datasetIds,
+            versionCount: research.versionIds.length,
+            accessRestrictions: [...criteriaSet].sort(),
             curationStatus,
             datePublished: research.datePublished,
             dateModified: research.dateModified,
@@ -61,7 +91,13 @@ export const createResearchesRouter = (structuredJsonDir: string): Router => {
 
   router.get("/:humId", async (req, res) => {
     try {
-      const filePath = path.join(structuredJsonDir, "research", `${req.params.humId}.json`)
+      const humIdResult = HumIdSchema.safeParse(req.params.humId)
+      if (!humIdResult.success) {
+        res.status(400).json({ error: "Invalid humId format" })
+
+        return
+      }
+      const filePath = path.join(structuredJsonDir, "research", `${humIdResult.data}.json`)
       const research = await readJson(filePath, ResearchSchema)
       res.json(research)
     } catch (error) {
@@ -73,7 +109,13 @@ export const createResearchesRouter = (structuredJsonDir: string): Router => {
 
   router.get("/:humId/versions", async (req, res) => {
     try {
-      const researchPath = path.join(structuredJsonDir, "research", `${req.params.humId}.json`)
+      const humIdResult = HumIdSchema.safeParse(req.params.humId)
+      if (!humIdResult.success) {
+        res.status(400).json({ error: "Invalid humId format" })
+
+        return
+      }
+      const researchPath = path.join(structuredJsonDir, "research", `${humIdResult.data}.json`)
       const research = await readJson(researchPath, ResearchSchema)
       const versions = await Promise.all(
         research.versionIds.map((id) =>
@@ -93,7 +135,13 @@ export const createResearchesRouter = (structuredJsonDir: string): Router => {
 
   router.get("/:humId/original", async (req, res) => {
     try {
-      const researchPath = path.join(structuredJsonDir, "research", `${req.params.humId}.json`)
+      const humIdResult = HumIdSchema.safeParse(req.params.humId)
+      if (!humIdResult.success) {
+        res.status(400).json({ error: "Invalid humId format" })
+
+        return
+      }
+      const researchPath = path.join(structuredJsonDir, "research", `${humIdResult.data}.json`)
       const research = await readJson(researchPath, ResearchSchema)
       const originalUrl = research.url.ja
       if (!originalUrl) {
@@ -109,7 +157,23 @@ export const createResearchesRouter = (structuredJsonDir: string): Router => {
         return
       }
 
-      const response = await fetch(originalUrl, { redirect: "follow" })
+      const MAX_REDIRECTS = 5
+      let currentUrl = originalUrl
+      let response = await fetch(currentUrl, { redirect: "manual" })
+      let redirects = 0
+      while (response.status >= 300 && response.status < 400 && redirects < MAX_REDIRECTS) {
+        const location = response.headers.get("location")
+        if (!location) break
+        const redirectUrl = new URL(location, currentUrl)
+        if (redirectUrl.hostname !== "humandbs.dbcls.jp") {
+          res.status(403).json({ error: "Redirect target is outside allowed domain" })
+
+          return
+        }
+        currentUrl = redirectUrl.toString()
+        response = await fetch(currentUrl, { redirect: "manual" })
+        redirects++
+      }
       if (!response.ok) {
         res.status(502).json({ error: `Failed to fetch original page: ${response.status}` })
 

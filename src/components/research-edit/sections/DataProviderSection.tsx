@@ -11,6 +11,8 @@ import Paper from "@mui/material/Paper"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 
+import { SectionHeader } from "@/components/SectionHeader"
+import { useStableKeys } from "@/hooks/use-stable-keys"
 import type { Person, Research } from "@/schemas/research"
 import { FORM_FIELD_MAX_WIDTH, SUBSECTION_GAP } from "@/theme"
 
@@ -72,6 +74,7 @@ const PersonFields = ({
 
 export const DataProviderSection = ({ draft, onChange }: DataProviderSectionProps) => {
   const { dataProvider } = draft
+  const { keys, removeKey } = useStableKeys(dataProvider.length)
 
   const updateItem = (index: number, updated: Person) => {
     const next = [...dataProvider]
@@ -81,9 +84,11 @@ export const DataProviderSection = ({ draft, onChange }: DataProviderSectionProp
 
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
-      <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>Data Provider</Typography>
+      <Box sx={{ mb: SUBSECTION_GAP }}>
+        <SectionHeader title="Data Provider" size="small" />
+      </Box>
       {dataProvider.map((person, i) => (
-        <Accordion key={i} defaultExpanded={dataProvider.length <= 3}>
+        <Accordion key={keys[i]} defaultExpanded={dataProvider.length <= 3}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
               <Typography variant="body1">
@@ -94,6 +99,7 @@ export const DataProviderSection = ({ draft, onChange }: DataProviderSectionProp
                 color="error"
                 onClick={(e) => {
                   e.stopPropagation()
+                  removeKey(i)
                   onChange({ ...draft, dataProvider: dataProvider.filter((_, idx) => idx !== i) })
                 }}
               >

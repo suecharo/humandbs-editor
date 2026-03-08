@@ -12,6 +12,8 @@ import Paper from "@mui/material/Paper"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 
+import { SectionHeader } from "@/components/SectionHeader"
+import { useStableKeys } from "@/hooks/use-stable-keys"
 import type { Person, Research } from "@/schemas/research"
 import { FORM_FIELD_MAX_WIDTH, FORM_LABEL_SX, SUBSECTION_GAP } from "@/theme"
 
@@ -37,6 +39,7 @@ const emptyUser: Person = {
 
 export const ControlledAccessUserSection = ({ draft, onChange }: ControlledAccessUserSectionProps) => {
   const { controlledAccessUser } = draft
+  const { keys, removeKey } = useStableKeys(controlledAccessUser.length)
 
   const updateItem = (index: number, updated: Person) => {
     const next = [...controlledAccessUser]
@@ -46,9 +49,11 @@ export const ControlledAccessUserSection = ({ draft, onChange }: ControlledAcces
 
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
-      <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>Controlled Access User</Typography>
+      <Box sx={{ mb: SUBSECTION_GAP }}>
+        <SectionHeader title="Controlled Access User" size="small" />
+      </Box>
       {controlledAccessUser.map((user, i) => (
-        <Accordion key={i} defaultExpanded={controlledAccessUser.length <= 3}>
+        <Accordion key={keys[i]} defaultExpanded={controlledAccessUser.length <= 3}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
               <Typography variant="body1">
@@ -59,6 +64,7 @@ export const ControlledAccessUserSection = ({ draft, onChange }: ControlledAcces
                 color="error"
                 onClick={(e) => {
                   e.stopPropagation()
+                  removeKey(i)
                   onChange({ ...draft, controlledAccessUser: controlledAccessUser.filter((_, idx) => idx !== i) })
                 }}
               >

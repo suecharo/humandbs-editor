@@ -38,7 +38,7 @@ export const ResearchForm = ({ versions }: ResearchFormProps) => {
       <PublicationSection draft={draft} onChange={setDraft} />
       <ControlledAccessUserSection draft={draft} onChange={setDraft} />
       <VersionsSection versions={versions} />
-      <DatasetsSection versions={versions} />
+      <DatasetsSection versions={versions} latestVersionId={draft.latestVersion} />
     </Box>
   )
 }

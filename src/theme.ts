@@ -5,14 +5,23 @@ import "@fontsource/inter/500.css"
 import "@fontsource/inter/600.css"
 import "@fontsource/inter/700.css"
 
-// Design tokens
+// Color palette
+
+const PRIMARY = "#2D3A96"
+const SECONDARY = "#BF6D4A"
+const ERROR = "#C93C3C"
+const WARNING = "#AD8B1E"
+const SUCCESS = "#247A4B"
+const INFO = "#2889AC"
+
+// Layout tokens
 
 export const HEADER_HEIGHT = "3rem"
-export const HEADER_BG = "#1E293B"
+export const HEADER_BG = "#181D35"
 export const NAV_LINK_COLOR = "#CBD5E1"
 export const NAV_LINK_HOVER_COLOR = "#FFFFFF"
 export const CONTENT_MARGIN_Y = 3
-export const FOOTER_BG = "#1E293B"
+export const FOOTER_BG = "#181D35"
 export const FOOTER_TEXT_COLOR = "#94A3B8"
 
 export const FORM_FIELD_MAX_WIDTH = "600px"
@@ -28,12 +37,35 @@ export const MONOSPACE_ID_SX = {
   fontSize: "0.8125rem",
 } as const
 
-// Spacing hierarchy (aligned with dfast naming)
+// Spacing hierarchy
+
 export const SECTION_GAP = 3
 export const SUBSECTION_GAP = 2
 export const FIELD_GROUP_GAP = 1.5
 
+// Heading tokens
+
+export const HEADING_BORDER_LARGE = "4px"
+export const HEADING_BORDER_SMALL = "3px"
+export const HEADING_PL = 1.5
+
+// Accent shadows
+
+export const HOVER_ACCENT_SHADOW = `inset 3px 0 0 0 ${PRIMARY}`
+export const SELECTED_ACCENT_SHADOW = `inset 4px 0 0 0 ${SECONDARY}`
+export const MODIFIED_ACCENT_SHADOW = `inset 3px 0 0 0 ${SUCCESS}`
+
+// Alpha backgrounds
+
+export const ALPHA_BG_PRIMARY_SUBTLE = "rgba(45, 58, 150, 0.06)"
+export const ALPHA_BG_SUCCESS_SUBTLE = "rgba(36, 122, 75, 0.12)"
+export const ALPHA_BG_SECONDARY_SUBTLE = "rgba(191, 109, 74, 0.12)"
+export const ALPHA_BG_WARNING_SUBTLE = "rgba(173, 139, 30, 0.12)"
+export const ALPHA_BG_ERROR_SUBTLE = "rgba(201, 60, 60, 0.12)"
+export const ALPHA_BG_INFO_SUBTLE = "rgba(40, 137, 172, 0.12)"
+
 // Form label
+
 export const FORM_LABEL_SX = {
   fontWeight: 500,
   color: "text.secondary",
@@ -43,12 +75,12 @@ const FONT_FAMILY = "'Inter', system-ui, -apple-system, sans-serif"
 
 export const theme = createTheme({
   palette: {
-    primary: { main: "#4960D3" },
-    secondary: { main: "#D4691E", contrastText: "#fff" },
-    error: { main: "#C9393B" },
-    warning: { main: "#B88914", contrastText: "#fff" },
-    info: { main: "#2889AC", contrastText: "#fff" },
-    success: { main: "#247A4B" },
+    primary: { main: PRIMARY },
+    secondary: { main: SECONDARY, contrastText: "#fff" },
+    error: { main: ERROR },
+    warning: { main: WARNING, contrastText: "#fff" },
+    info: { main: INFO, contrastText: "#fff" },
+    success: { main: SUCCESS },
     background: {
       default: "#F8FAFC",
       paper: "#FFFFFF",
@@ -103,7 +135,7 @@ export const theme = createTheme({
         }
 
         :focus-visible {
-          outline: 2px solid #4960D3;
+          outline: 2px solid ${PRIMARY};
           outline-offset: 2px;
         }
       `,
@@ -177,7 +209,7 @@ export const theme = createTheme({
             backgroundColor: "#F1F5F9",
             fontWeight: 600,
             fontSize: "0.6875rem",
-            textTransform: "uppercase",
+            textTransform: "none",
             letterSpacing: "0.06em",
             color: "#475569",
             borderBottomWidth: 1,
@@ -194,7 +226,7 @@ export const theme = createTheme({
           },
           "& .MuiTableRow-root.MuiTableRow-hover:hover": {
             backgroundColor: "#F8FAFC",
-            boxShadow: "inset 3px 0 0 0 #4960D3",
+            boxShadow: HOVER_ACCENT_SHADOW,
           },
           "& .MuiTableRow-root:last-of-type .MuiTableCell-root": {
             borderBottom: "none",
@@ -231,16 +263,40 @@ export const theme = createTheme({
         root: {
           fontWeight: 500,
         },
+        colorPrimary: {
+          "&.MuiChip-filled": {
+            backgroundColor: ALPHA_BG_PRIMARY_SUBTLE,
+            color: PRIMARY,
+          },
+        },
+        colorSecondary: {
+          "&.MuiChip-filled": {
+            backgroundColor: ALPHA_BG_SECONDARY_SUBTLE,
+            color: SECONDARY,
+          },
+        },
         colorSuccess: {
           "&.MuiChip-filled": {
-            backgroundColor: "rgba(36, 122, 75, 0.12)",
-            color: "#247A4B",
+            backgroundColor: ALPHA_BG_SUCCESS_SUBTLE,
+            color: SUCCESS,
+          },
+        },
+        colorInfo: {
+          "&.MuiChip-filled": {
+            backgroundColor: ALPHA_BG_INFO_SUBTLE,
+            color: INFO,
           },
         },
         colorWarning: {
           "&.MuiChip-filled": {
-            backgroundColor: "rgba(184, 137, 20, 0.12)",
-            color: "#B88914",
+            backgroundColor: ALPHA_BG_WARNING_SUBTLE,
+            color: WARNING,
+          },
+        },
+        colorError: {
+          "&.MuiChip-filled": {
+            backgroundColor: ALPHA_BG_ERROR_SUBTLE,
+            color: ERROR,
           },
         },
       },
@@ -261,6 +317,22 @@ export const theme = createTheme({
           "&:hover": {
             textDecorationThickness: "2px",
           },
+        },
+      },
+    },
+    MuiAlert: {
+      styleOverrides: {
+        root: {
+          alignItems: "center",
+          borderRadius: 8,
+          fontSize: "0.8125rem",
+        },
+        icon: {
+          paddingTop: 8,
+          paddingBottom: 8,
+        },
+        action: {
+          paddingRight: 8,
         },
       },
     },

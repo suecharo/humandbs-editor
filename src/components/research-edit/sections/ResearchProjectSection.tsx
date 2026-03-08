@@ -10,6 +10,8 @@ import IconButton from "@mui/material/IconButton"
 import Paper from "@mui/material/Paper"
 import Typography from "@mui/material/Typography"
 
+import { SectionHeader } from "@/components/SectionHeader"
+import { useStableKeys } from "@/hooks/use-stable-keys"
 import type { Research, ResearchProject } from "@/schemas/research"
 import { SUBSECTION_GAP } from "@/theme"
 
@@ -27,6 +29,7 @@ const emptyProject: ResearchProject = {
 
 export const ResearchProjectSection = ({ draft, onChange }: ResearchProjectSectionProps) => {
   const { researchProject } = draft
+  const { keys, removeKey } = useStableKeys(researchProject.length)
 
   const updateItem = (index: number, updated: ResearchProject) => {
     const next = [...researchProject]
@@ -36,9 +39,11 @@ export const ResearchProjectSection = ({ draft, onChange }: ResearchProjectSecti
 
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
-      <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>Research Project</Typography>
+      <Box sx={{ mb: SUBSECTION_GAP }}>
+        <SectionHeader title="Research Project" size="small" />
+      </Box>
       {researchProject.map((project, i) => (
-        <Accordion key={i} defaultExpanded={researchProject.length <= 3}>
+        <Accordion key={keys[i]} defaultExpanded={researchProject.length <= 3}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
               <Typography variant="body1">
@@ -49,6 +54,7 @@ export const ResearchProjectSection = ({ draft, onChange }: ResearchProjectSecti
                 color="error"
                 onClick={(e) => {
                   e.stopPropagation()
+                  removeKey(i)
                   onChange({ ...draft, researchProject: researchProject.filter((_, idx) => idx !== i) })
                 }}
               >

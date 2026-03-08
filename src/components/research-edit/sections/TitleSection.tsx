@@ -1,6 +1,7 @@
+import Box from "@mui/material/Box"
 import Paper from "@mui/material/Paper"
-import Typography from "@mui/material/Typography"
 
+import { SectionHeader } from "@/components/SectionHeader"
 import type { Research } from "@/schemas/research"
 import { SUBSECTION_GAP } from "@/theme"
 
@@ -13,7 +14,9 @@ interface TitleSectionProps {
 
 export const TitleSection = ({ draft, onChange }: TitleSectionProps) => (
   <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
-    <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>Title</Typography>
+    <Box sx={{ mb: SUBSECTION_GAP }}>
+      <SectionHeader title="Title" size="small" />
+    </Box>
     <BilingualTextField
       label="Title"
       value={draft.title}

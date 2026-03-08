@@ -1,6 +1,7 @@
+import Box from "@mui/material/Box"
 import Paper from "@mui/material/Paper"
-import Typography from "@mui/material/Typography"
 
+import { SectionHeader } from "@/components/SectionHeader"
 import type { Research } from "@/schemas/research"
 import { SUBSECTION_GAP } from "@/theme"
 
@@ -12,7 +13,9 @@ interface BasicInfoSectionProps {
 
 export const BasicInfoSection = ({ research }: BasicInfoSectionProps) => (
   <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
-    <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>Basic Info</Typography>
+    <Box sx={{ mb: SUBSECTION_GAP }}>
+      <SectionHeader title="Basic Info" size="small" />
+    </Box>
     <ReadOnlyField label="HUM ID" value={research.humId} />
     <ReadOnlyField label="URL (JA)" value={research.url.ja} />
     <ReadOnlyField label="URL (EN)" value={research.url.en} />

@@ -1,3 +1,4 @@
+import Box from "@mui/material/Box"
 import Paper from "@mui/material/Paper"
 import Table from "@mui/material/Table"
 import TableBody from "@mui/material/TableBody"
@@ -7,6 +8,7 @@ import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import Typography from "@mui/material/Typography"
 
+import { SectionHeader } from "@/components/SectionHeader"
 import type { ResearchVersion } from "@/schemas/research-version"
 import { MONOSPACE_ID_SX, SUBSECTION_GAP } from "@/theme"
 
@@ -16,7 +18,9 @@ interface VersionsSectionProps {
 
 export const VersionsSection = ({ versions }: VersionsSectionProps) => (
   <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
-    <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>Versions</Typography>
+    <Box sx={{ mb: SUBSECTION_GAP }}>
+      <SectionHeader title="Versions" size="small" />
+    </Box>
     <TableContainer>
       <Table>
         <TableHead>

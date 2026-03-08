@@ -1,6 +1,10 @@
+import NavigateNextIcon from "@mui/icons-material/NavigateNext"
 import Alert from "@mui/material/Alert"
 import Box from "@mui/material/Box"
+import Breadcrumbs from "@mui/material/Breadcrumbs"
 import CircularProgress from "@mui/material/CircularProgress"
+import Typography from "@mui/material/Typography"
+import { Link } from "@tanstack/react-router"
 import { useAtomValue, useSetAtom } from "jotai"
 import { useEffect } from "react"
 
@@ -54,6 +58,18 @@ export const ResearchEditPage = () => {
 
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <Box sx={{ px: 1.5, borderBottom: 1, borderColor: "divider", bgcolor: "background.default", flexShrink: 0 }}>
+        <Breadcrumbs sx={{ py: 0.5 }} separator={<NavigateNextIcon sx={{ fontSize: "0.875rem" }} />}>
+          <Link to="/" style={{ color: "inherit", textDecoration: "none" }}>
+            <Typography variant="body2" sx={{ "&:hover": { textDecoration: "underline" } }}>
+              研究一覧
+            </Typography>
+          </Link>
+          <Typography variant="body2" color="text.primary" fontWeight={600}>
+            {humId}
+          </Typography>
+        </Breadcrumbs>
+      </Box>
       {dirty && (
         <Alert severity="info" sx={{ borderRadius: 0 }}>
           Unsaved changes

@@ -59,7 +59,7 @@ export const ResearchPreview = ({ versions }: ResearchPreviewProps) => {
 
   if (!draft) return null
 
-  const latestVersion = versions.at(-1)
+  const latestVersion = versions.find((v) => v.humVersionId === draft.latestVersion) ?? versions.at(-1)
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: SECTION_GAP }}>

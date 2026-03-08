@@ -7,14 +7,14 @@ export const AppFooter = () => (
   <Box
     component="footer"
     sx={{
-      backgroundColor: FOOTER_BG,
-      py: 1.5,
+      bgcolor: FOOTER_BG,
+      py: 0.5,
       px: 3,
       textAlign: "center",
     }}
   >
-    <Typography variant="body2" sx={{ color: FOOTER_TEXT_COLOR }}>
-      humandbs-editor
+    <Typography sx={{ color: FOOTER_TEXT_COLOR, fontSize: "0.6875rem" }}>
+      HumanDBs Editor @suecharo
     </Typography>
   </Box>
 )

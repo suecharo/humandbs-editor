@@ -156,3 +156,6 @@ structured-json/
 
 # compose override (environment-specific, see compose.override.podman.yml)
 compose.override.yml
+
+# Playwright CLI
+.playwright-cli/

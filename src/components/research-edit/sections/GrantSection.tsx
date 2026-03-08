@@ -11,6 +11,8 @@ import Paper from "@mui/material/Paper"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 
+import { SectionHeader } from "@/components/SectionHeader"
+import { useStableKeys } from "@/hooks/use-stable-keys"
 import type { Grant, Research } from "@/schemas/research"
 import { FORM_FIELD_MAX_WIDTH, SUBSECTION_GAP } from "@/theme"
 
@@ -29,6 +31,7 @@ const emptyGrant: Grant = {
 
 export const GrantSection = ({ draft, onChange }: GrantSectionProps) => {
   const { grant } = draft
+  const { keys, removeKey } = useStableKeys(grant.length)
 
   const updateItem = (index: number, updated: Grant) => {
     const next = [...grant]
@@ -38,9 +41,11 @@ export const GrantSection = ({ draft, onChange }: GrantSectionProps) => {
 
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
-      <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>Grant</Typography>
+      <Box sx={{ mb: SUBSECTION_GAP }}>
+        <SectionHeader title="Grant" size="small" />
+      </Box>
       {grant.map((g, i) => (
-        <Accordion key={i} defaultExpanded={grant.length <= 3}>
+        <Accordion key={keys[i]} defaultExpanded={grant.length <= 3}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
               <Typography variant="body1">
@@ -51,6 +56,7 @@ export const GrantSection = ({ draft, onChange }: GrantSectionProps) => {
                 color="error"
                 onClick={(e) => {
                   e.stopPropagation()
+                  removeKey(i)
                   onChange({ ...draft, grant: grant.filter((_, idx) => idx !== i) })
                 }}
               >

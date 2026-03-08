@@ -7,6 +7,8 @@ import Paper from "@mui/material/Paper"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 
+import { SectionHeader } from "@/components/SectionHeader"
+import { useStableKeys } from "@/hooks/use-stable-keys"
 import type { TextValue } from "@/schemas/common"
 import type { Research } from "@/schemas/research"
 import { FORM_FIELD_MAX_WIDTH, FORM_LABEL_SX, SUBSECTION_GAP } from "@/theme"
@@ -28,32 +30,43 @@ const FooterList = ({
   onChangeItem: (index: number, text: string) => void
   onAdd: () => void
   onRemove: (index: number) => void
-}) => (
-  <Box sx={{ mb: SUBSECTION_GAP }}>
-    <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: 1 }}>
-      {label}
-    </Typography>
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 1, maxWidth: FORM_FIELD_MAX_WIDTH }}>
-      {items.map((item, i) => (
-        <Box key={i} sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
-          <TextField
-            value={item.text}
-            onChange={(e) => onChangeItem(i, e.target.value)}
-            multiline
-            minRows={1}
-            fullWidth
-          />
-          <IconButton size="small" onClick={() => onRemove(i)} color="error">
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      ))}
-      <Button startIcon={<AddIcon />} size="small" onClick={onAdd} sx={{ alignSelf: "flex-start" }}>
-        Add
-      </Button>
+}) => {
+  const { keys, removeKey } = useStableKeys(items.length)
+
+  return (
+    <Box sx={{ mb: SUBSECTION_GAP }}>
+      <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: 1 }}>
+        {label}
+      </Typography>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1, maxWidth: FORM_FIELD_MAX_WIDTH }}>
+        {items.map((item, i) => (
+          <Box key={keys[i]} sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
+            <TextField
+              value={item.text}
+              onChange={(e) => onChangeItem(i, e.target.value)}
+              multiline
+              minRows={1}
+              fullWidth
+            />
+            <IconButton
+              size="small"
+              onClick={() => {
+                removeKey(i)
+                onRemove(i)
+              }}
+              color="error"
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        ))}
+        <Button startIcon={<AddIcon />} size="small" onClick={onAdd} sx={{ alignSelf: "flex-start" }}>
+          Add
+        </Button>
+      </Box>
     </Box>
-  </Box>
-)
+  )
+}
 
 export const FootersSection = ({ draft, onChange }: FootersSectionProps) => {
   const { footers } = draft.summary
@@ -73,7 +86,9 @@ export const FootersSection = ({ draft, onChange }: FootersSectionProps) => {
 
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
-      <Typography variant="h2" sx={{ mb: SUBSECTION_GAP }}>Footers</Typography>
+      <Box sx={{ mb: SUBSECTION_GAP }}>
+        <SectionHeader title="Footers" size="small" />
+      </Box>
       <FooterList
         label="JA"
         items={footers.ja}
