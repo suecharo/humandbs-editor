@@ -199,18 +199,29 @@ const MetaField = ({ label, value, isLink }: {
   </Box>
 )
 
+const RELEASE_NOTE_MAX_LENGTH = 60
+
+const getReleaseNoteSummary = (v: ResearchVersion): string => {
+  const text = v.releaseNote.ja?.text || v.releaseNote.en?.text
+  if (!text) return "-"
+  return text.length > RELEASE_NOTE_MAX_LENGTH
+    ? `${text.slice(0, RELEASE_NOTE_MAX_LENGTH)}…`
+    : text
+}
+
 const ReleasesTable = ({ versions, expandedVersion, onToggleExpand }: {
   versions: ResearchVersion[]
   expandedVersion: string | null
   onToggleExpand: (versionId: string) => void
 }) => (
   <TableContainer>
-    <Table>
+    <Table size="small">
       <TableHead>
-        <TableRow>
-          <TableCell sx={{ width: 40, px: 0.5 }} />
+        <TableRow sx={{ "& > .MuiTableCell-root": { py: 0.625 } }}>
+          <TableCell sx={{ width: 32, px: 0.5 }} />
           <TableCell>Version</TableCell>
           <TableCell>Release Date</TableCell>
+          <TableCell>Release Note</TableCell>
           <TableCell align="center">Datasets</TableCell>
         </TableRow>
       </TableHead>
@@ -225,30 +236,42 @@ const ReleasesTable = ({ versions, expandedVersion, onToggleExpand }: {
                 onClick={() => onToggleExpand(v.humVersionId)}
                 sx={{
                   cursor: "pointer",
-                  ...(isExpanded && { "& > .MuiTableCell-root": { borderBottomColor: "transparent" } }),
+                  "& > .MuiTableCell-root": {
+                    py: 0.625,
+                    ...(isExpanded && { borderBottomColor: "transparent" }),
+                  },
                 }}
               >
-                <TableCell sx={{ width: 40, px: 0.5 }}>
-                  <IconButton size="small" tabIndex={-1}>
-                    {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                <TableCell sx={{ width: 32, px: 0.5, verticalAlign: "middle", lineHeight: 0 }}>
+                  <IconButton size="small" tabIndex={-1} sx={{ p: 0.25 }}>
+                    {isExpanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
                   </IconButton>
                 </TableCell>
                 <TableCell sx={MONOSPACE_ID_SX}>{v.version}</TableCell>
                 <TableCell>{v.versionReleaseDate}</TableCell>
+                <TableCell>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 360 }}
+                  >
+                    {getReleaseNoteSummary(v)}
+                  </Typography>
+                </TableCell>
                 <TableCell align="center">{v.datasets.length}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={5}
                   sx={{ py: 0, ...(isExpanded ? {} : { borderBottom: 0 }) }}
                 >
                   <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                    <Box sx={{ py: 1.5, px: 2 }}>
+                    <Box sx={{ py: 1, px: 2 }}>
                       <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
                         Release Note
                       </Typography>
                       {v.releaseNote.ja?.text || v.releaseNote.en?.text ? (
-                        <Box sx={{ mb: 1.5 }}>
+                        <Box sx={{ mb: 1 }}>
                           {v.releaseNote.ja?.text ? (
                             <Typography variant="body2" color="text.secondary">
                               JA: {v.releaseNote.ja.text}
@@ -261,7 +284,7 @@ const ReleasesTable = ({ versions, expandedVersion, onToggleExpand }: {
                           ) : null}
                         </Box>
                       ) : (
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                           -
                         </Typography>
                       )}
@@ -292,7 +315,7 @@ const ReleasesTable = ({ versions, expandedVersion, onToggleExpand }: {
         })}
         {versions.length === 0 && (
           <TableRow>
-            <TableCell colSpan={4} align="center">
+            <TableCell colSpan={5} align="center">
               <Typography variant="body2" color="text.secondary">No releases</Typography>
             </TableCell>
           </TableRow>

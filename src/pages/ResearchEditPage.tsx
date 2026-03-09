@@ -12,7 +12,6 @@ import { useCallback, useEffect } from "react"
 import { AppFooter } from "../components/layout/AppFooter"
 import { SplitLayout } from "../components/layout/SplitLayout"
 import { ResearchForm } from "../components/research-edit/ResearchForm"
-import { ResearchPreview } from "../components/research-edit/ResearchPreview"
 import { BasicInfoSection } from "../components/research-edit/sections/BasicInfoSection"
 import { TabbedPane } from "../components/research-edit/TabbedPane"
 import { useCurationStatus, useUpdateSectionStatus } from "../hooks/use-curation-status"
@@ -165,8 +164,6 @@ export const ResearchEditPage = () => {
                   onToggleSection={handleToggleSection}
                 />
               }
-              previewJa={<ResearchPreview lang="ja" />}
-              previewEn={<ResearchPreview lang="en" />}
               humId={humId}
               originalUrls={{ ja: research?.url.ja ?? null, en: research?.url.en ?? null }}
               showOriginalIframe={debugOriginal !== "off"}
@@ -182,12 +179,10 @@ export const ResearchEditPage = () => {
                   onToggleSection={handleToggleSection}
                 />
               }
-              previewJa={<ResearchPreview lang="ja" />}
-              previewEn={<ResearchPreview lang="en" />}
               humId={humId}
               originalUrls={{ ja: research?.url.ja ?? null, en: research?.url.en ?? null }}
               showOriginalIframe={debugOriginal !== "off"}
-              initialTabIndex={3}
+              initialTabIndex={1}
             />
           }
         />

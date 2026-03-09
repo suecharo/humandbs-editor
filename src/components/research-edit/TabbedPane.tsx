@@ -12,8 +12,6 @@ import { TabPanel, tabA11yProps } from "../TabPanel"
 interface TabbedPaneProps {
   prefix: string
   form: React.ReactNode
-  previewJa: React.ReactNode
-  previewEn: React.ReactNode
   humId: string
   originalUrls: { ja: string | null; en: string | null }
   showOriginalIframe?: boolean
@@ -72,7 +70,7 @@ const OriginalTabContent = ({
   )
 }
 
-export const TabbedPane = ({ prefix, form, previewJa, previewEn, humId, originalUrls, showOriginalIframe = true, initialTabIndex = 0 }: TabbedPaneProps) => {
+export const TabbedPane = ({ prefix, form, humId, originalUrls, showOriginalIframe = true, initialTabIndex = 0 }: TabbedPaneProps) => {
   const [tabIndex, setTabIndex] = useState(initialTabIndex)
   const proxyUrl = (lang: "ja" | "en") =>
     `/api/researches/${encodeURIComponent(humId)}/original?lang=${lang}`
@@ -81,10 +79,8 @@ export const TabbedPane = ({ prefix, form, previewJa, previewEn, humId, original
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Tabs value={tabIndex} onChange={(_, v: number) => setTabIndex(v)} sx={TAB_BAR_SX}>
         <Tab label="Edit" {...tabA11yProps(prefix, 0)} />
-        <Tab label="Preview Ja" {...tabA11yProps(prefix, 1)} />
-        <Tab label="Preview En" {...tabA11yProps(prefix, 2)} />
-        <Tab label="Original Ja" {...tabA11yProps(prefix, 3)} />
-        <Tab label="Original En" {...tabA11yProps(prefix, 4)} />
+        <Tab label="Original Ja" {...tabA11yProps(prefix, 1)} />
+        <Tab label="Original En" {...tabA11yProps(prefix, 2)} />
       </Tabs>
       <Box sx={{ flex: 1, overflow: "hidden" }}>
         <TabPanel value={tabIndex} index={0} prefix={prefix} lazy>
@@ -93,23 +89,13 @@ export const TabbedPane = ({ prefix, form, previewJa, previewEn, humId, original
           </Box>
         </TabPanel>
         <TabPanel value={tabIndex} index={1} prefix={prefix} lazy>
-          <Box sx={{ overflow: "auto", height: "100%", p: TAB_CONTENT_PADDING }}>
-            {previewJa}
-          </Box>
-        </TabPanel>
-        <TabPanel value={tabIndex} index={2} prefix={prefix} lazy>
-          <Box sx={{ overflow: "auto", height: "100%", p: TAB_CONTENT_PADDING }}>
-            {previewEn}
-          </Box>
-        </TabPanel>
-        <TabPanel value={tabIndex} index={3} prefix={prefix} lazy>
           <OriginalTabContent
             url={originalUrls.ja}
             iframeSrc={proxyUrl("ja")}
             showIframe={showOriginalIframe}
           />
         </TabPanel>
-        <TabPanel value={tabIndex} index={4} prefix={prefix} lazy>
+        <TabPanel value={tabIndex} index={2} prefix={prefix} lazy>
           <OriginalTabContent
             url={originalUrls.en}
             iframeSrc={proxyUrl("en")}
