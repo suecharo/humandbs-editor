@@ -32,10 +32,11 @@ fullScreenLayout (AppHeader + full-height main、footer なし) を使用。
 
 - 見出し: `{humId}` (`SectionHeader` default size, `component="h1"`)
 - `CurationStatusChip`: research 全体の curation 状態を表示 (導出値、後述)
-- アクションボタン (右寄せ):
-  - 「変更を破棄」: `dirty` 時のみ有効。draft を server state にリセットする
-  - 「全て Uncurated」: 全セクションを uncurated に設定
+- アクションボタン (右寄せ、左から順に):
   - 「全て Curated」: 全セクションを curated に設定
+  - 「全て Uncurated」: 全セクションを uncurated に設定
+  - 「保存」: `dirty` 時のみ有効。確認ダイアログ → PUT `/api/researches/:humId` で保存
+  - 「変更を破棄」: `dirty` 時のみ有効。draft を server state にリセットする
 
 ### メタデータ
 
@@ -74,18 +75,36 @@ fullScreenLayout (AppHeader + full-height main、footer なし) を使用。
 | タイトル | `TitleSection` | `title` | title (ja/en) | editable |
 | サマリー | `SummarySection` | `summary` | aims, methods, targets | editable |
 | データセット一覧 | `DatasetsSection` | `datasets` | dataset 一覧 | read-only |
-| データ提供者 | `DataProviderSection` | `dataProvider` | Person 配列 | editable, 行追加/削除 |
-| 研究プロジェクト | `ResearchProjectSection` | `researchProject` | ResearchProject 配列 | editable, 行追加/削除 |
-| 助成金 | `GrantSection` | `grant` | Grant 配列 | editable, 行追加/削除 |
-| 関連論文 | `PublicationSection` | `publication` | Publication 配列 (datasetIds は read-only) | editable, 行追加/削除 |
-| データ利用者 | `ControlledAccessUserSection` | `controlledAccessUser` | Person 配列 (datasetIds は read-only) | editable, 行追加/削除 |
+| データ提供者 | `DataProviderSection` | `dataProvider` | Person 配列、カード+ダイアログ編集、ORCID 検索 | editable, 行追加/削除/並替 |
+| 研究プロジェクト | `ResearchProjectSection` | `researchProject` | ResearchProject 配列、カード+ダイアログ編集 | editable, 行追加/削除/並替 |
+| 助成金 | `GrantSection` | `grant` | Grant 配列、カード+ダイアログ編集 | editable, 行追加/削除/並替 |
+| 関連論文 | `PublicationSection` | `publication` | Publication 配列、カード+ダイアログ編集 (datasetIds は read-only) | editable, 行追加/削除/並替 |
+| データ利用者 | `ControlledAccessUserSection` | `controlledAccessUser` | Person 配列、カード+ダイアログ編集、ORCID 検索 (datasetIds は read-only) | editable, 行追加/削除/並替 |
+
+### 配列セクションの編集パターン
+
+データ提供者・研究プロジェクト・助成金・関連論文・データ利用者の各セクションは `ItemCardList` パターンを採用する:
+
+- **カードリスト**: 各アイテムをコンパクトなカード (Paper) でサマリー表示
+- **ダイアログ編集**: Edit ボタンで Dialog を開き、全フィールドを編集
+- **追加**: Add ボタンで新規アイテム用の Dialog を開く
+- **削除**: Delete ボタンで確認ダイアログを表示後に削除
+- **並べ替え**: Move Up / Move Down ボタンで順序変更
+
+### ORCID 検索
+
+データ提供者・データ利用者の編集ダイアログに ORCID 検索 (`OrcidAutocomplete`) を配置する:
+
+- ORCID public API (`pub.orcid.org/v3.0/expanded-search`) でデバウンス検索 (300ms)
+- 選択時に `name.en.text` に英語名、`organization.name.en.text` に所属機関名、`orcid` に ORCID ID を自動入力
+- 日本語名 (`name.ja`) は手動入力のまま
 
 ## Curation 状態管理
 
 ### セクションレベル
 
 各セクションは `"uncurated"` または `"curated"` の 2 値で管理する。
-`SectionCurationToggle` (Chip) をクリックしてトグルする。
+`SectionCurationToggle` (ToggleButtonGroup: Uncurated | Curated の2択) をクリックしてトグルする。
 
 ### Research レベル (導出)
 
@@ -160,14 +179,14 @@ Jotai の server/draft/dirty atom パターンを使用:
 
 ## スコープ
 
-この段階では以下のみ実装:
+この段階では以下を実装済み:
 
 - read-only 表示
 - フォーム編集 (クライアント state のみ)
 - セクション別 curation 状態管理
+- API への PUT (保存): 確認ダイアログ → PUT のシンプルなフロー
+- 離脱警告: 未保存の変更がある状態でページ遷移・リロード時に確認ダイアログ表示
 
 以下は後続タスク:
 
-- API への PUT (保存)
 - editing lock
-- diff 確認画面

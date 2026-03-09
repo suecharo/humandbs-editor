@@ -9,11 +9,11 @@ import { ResearchSchema } from "../../src/schemas/research"
 import { ResearchVersionSchema } from "../../src/schemas/research-version"
 import { readEditorState } from "../utils/editor-state"
 import { readJson } from "../utils/read-json"
+import { parseHumId } from "../utils/validate-hum-id"
 
-const HumIdSchema = z.string().regex(/^hum\d+$/)
 const LangSchema = z.enum(["ja", "en"]).default("ja")
 
-export const createResearchesRouter = (structuredJsonDir: string): Router => {
+export const createResearchesRouter = (structuredJsonDir: string, editorStateDir: string): Router => {
   const router = Router()
 
   router.get("/", async (_req, res) => {
@@ -22,7 +22,7 @@ export const createResearchesRouter = (structuredJsonDir: string): Router => {
       const files = await fs.readdir(researchDir)
       const jsonFiles = files.filter((f) => f.endsWith(".json"))
 
-      const editorState = await readEditorState(structuredJsonDir)
+      const editorState = await readEditorState(editorStateDir)
 
       const items = await Promise.all(
         jsonFiles.map(async (file) => {
@@ -92,13 +92,10 @@ export const createResearchesRouter = (structuredJsonDir: string): Router => {
 
   router.get("/:humId", async (req, res) => {
     try {
-      const humIdResult = HumIdSchema.safeParse(req.params.humId)
-      if (!humIdResult.success) {
-        res.status(400).json({ error: "Invalid humId format" })
+      const humId = parseHumId(req.params.humId, res)
+      if (humId === null) return
 
-        return
-      }
-      const filePath = path.join(structuredJsonDir, "research", `${humIdResult.data}.json`)
+      const filePath = path.join(structuredJsonDir, "research", `${humId}.json`)
       const research = await readJson(filePath, ResearchSchema)
       res.json(research)
     } catch (error) {
@@ -108,15 +105,50 @@ export const createResearchesRouter = (structuredJsonDir: string): Router => {
     }
   })
 
-  router.get("/:humId/versions", async (req, res) => {
+  router.put("/:humId", async (req, res) => {
     try {
-      const humIdResult = HumIdSchema.safeParse(req.params.humId)
-      if (!humIdResult.success) {
-        res.status(400).json({ error: "Invalid humId format" })
+      const humId = parseHumId(req.params.humId, res)
+      if (humId === null) return
+
+      const bodyResult = ResearchSchema.safeParse(req.body)
+      if (!bodyResult.success) {
+        res.status(400).json({ error: "Invalid request body", details: bodyResult.error.issues })
 
         return
       }
-      const researchPath = path.join(structuredJsonDir, "research", `${humIdResult.data}.json`)
+
+      if (bodyResult.data.humId !== humId) {
+        res.status(400).json({ error: "humId in body does not match URL parameter" })
+
+        return
+      }
+
+      const filePath = path.join(structuredJsonDir, "research", `${humId}.json`)
+
+      // Verify the file already exists (only update, not create)
+      try {
+        await fs.access(filePath)
+      } catch {
+        res.status(404).json({ error: `Research ${humId} not found` })
+
+        return
+      }
+
+      await fs.writeFile(filePath, JSON.stringify(bodyResult.data, null, 2), "utf-8")
+      res.json(bodyResult.data)
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(`Failed to update research ${req.params.humId}:`, error)
+      res.status(500).json({ error: `Failed to update research ${req.params.humId}` })
+    }
+  })
+
+  router.get("/:humId/versions", async (req, res) => {
+    try {
+      const humId = parseHumId(req.params.humId, res)
+      if (humId === null) return
+
+      const researchPath = path.join(structuredJsonDir, "research", `${humId}.json`)
       const research = await readJson(researchPath, ResearchSchema)
       const versions = await Promise.all(
         research.versionIds.map((id) =>
@@ -136,12 +168,9 @@ export const createResearchesRouter = (structuredJsonDir: string): Router => {
 
   router.get("/:humId/original", async (req, res) => {
     try {
-      const humIdResult = HumIdSchema.safeParse(req.params.humId)
-      if (!humIdResult.success) {
-        res.status(400).json({ error: "Invalid humId format" })
+      const humId = parseHumId(req.params.humId, res)
+      if (humId === null) return
 
-        return
-      }
       const langResult = LangSchema.safeParse(req.query.lang)
       if (!langResult.success) {
         res.status(400).json({ error: "Invalid lang parameter. Must be 'ja' or 'en'" })
@@ -149,7 +178,7 @@ export const createResearchesRouter = (structuredJsonDir: string): Router => {
         return
       }
       const lang = langResult.data
-      const researchPath = path.join(structuredJsonDir, "research", `${humIdResult.data}.json`)
+      const researchPath = path.join(structuredJsonDir, "research", `${humId}.json`)
       const research = await readJson(researchPath, ResearchSchema)
       const originalUrl = research.url[lang]
       if (!originalUrl) {

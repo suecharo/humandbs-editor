@@ -1,26 +1,11 @@
-import AddIcon from "@mui/icons-material/Add"
-import DeleteIcon from "@mui/icons-material/Delete"
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
-import Accordion from "@mui/material/Accordion"
-import AccordionDetails from "@mui/material/AccordionDetails"
-import AccordionSummary from "@mui/material/AccordionSummary"
-import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
-import Chip from "@mui/material/Chip"
-import IconButton from "@mui/material/IconButton"
-import Paper from "@mui/material/Paper"
-import TextField from "@mui/material/TextField"
-import Typography from "@mui/material/Typography"
-import { memo } from "react"
+import { memo, useCallback } from "react"
 
-import { SectionHeader } from "@/components/SectionHeader"
-import { useStableKeys } from "@/hooks/use-stable-keys"
 import type { SectionCurationStatus } from "@/schemas/editor-state"
 import type { Publication, Research } from "@/schemas/research"
-import { FORM_FIELD_MAX_WIDTH, FORM_LABEL_SX, SUBSECTION_GAP } from "@/theme"
 
-import { BilingualTextField } from "../fields/BilingualTextField"
-import { SectionCurationToggle } from "../SectionCurationToggle"
+import { ItemListSection } from "./ItemListSection"
+import { PublicationCard } from "./PublicationCard"
+import { PublicationEditDialog } from "./PublicationEditDialog"
 
 interface PublicationSectionProps {
   draft: Research
@@ -29,90 +14,27 @@ interface PublicationSectionProps {
   onToggleStatus?: (() => void) | undefined
 }
 
-const emptyPublication: Publication = {
-  title: { ja: null, en: null },
-  doi: null,
-}
-
 export const PublicationSection = memo(({ draft, onChange, sectionStatus, onToggleStatus }: PublicationSectionProps) => {
-  const { relatedPublication } = draft
-  const { keys, removeKey } = useStableKeys(relatedPublication.length)
-
-  const updateItem = (index: number, updated: Publication) => {
-    const next = [...relatedPublication]
-    next[index] = updated
-    onChange({ ...draft, relatedPublication: next })
-  }
+  const handleItemsChange = useCallback(
+    (items: Publication[]) => onChange({ ...draft, relatedPublication: items }),
+    [draft, onChange],
+  )
 
   return (
-    <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
-      <Box sx={{ mb: SUBSECTION_GAP }}>
-        <SectionHeader
-          title="関連論文"
-          size="small"
-          action={sectionStatus !== undefined && onToggleStatus ? (
-            <SectionCurationToggle status={sectionStatus} onToggle={onToggleStatus} />
-          ) : undefined}
-        />
-      </Box>
-      {relatedPublication.map((pub, i) => (
-        <Accordion key={keys[i]} defaultExpanded={relatedPublication.length <= 3} slotProps={{ transition: { unmountOnExit: true } }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
-              <Typography variant="body1">
-                {pub.title.ja || pub.title.en || `Publication ${i + 1}`}
-              </Typography>
-              <IconButton
-                size="small"
-                color="error"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  removeKey(i)
-                  onChange({ ...draft, relatedPublication: relatedPublication.filter((_, idx) => idx !== i) })
-                }}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Box sx={{ maxWidth: FORM_FIELD_MAX_WIDTH }}>
-              <BilingualTextField
-                label="Title"
-                value={pub.title}
-                onChange={(title) => updateItem(i, { ...pub, title })}
-              />
-              <TextField
-                label="DOI"
-                value={pub.doi ?? ""}
-                onChange={(e) => updateItem(i, { ...pub, doi: e.target.value || null })}
-                fullWidth
-                sx={{ mb: SUBSECTION_GAP }}
-              />
-              {pub.datasetIds && pub.datasetIds.length > 0 && (
-                <Box sx={{ mb: 1 }}>
-                  <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: 0.5 }}>
-                    Dataset IDs (read-only)
-                  </Typography>
-                  <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                    {pub.datasetIds.map((id) => (
-                      <Chip key={id} label={id} size="small" />
-                    ))}
-                  </Box>
-                </Box>
-              )}
-            </Box>
-          </AccordionDetails>
-        </Accordion>
-      ))}
-      <Button
-        startIcon={<AddIcon />}
-        size="small"
-        sx={{ mt: 1 }}
-        onClick={() => onChange({ ...draft, relatedPublication: [...relatedPublication, emptyPublication] })}
-      >
-        Add Publication
-      </Button>
-    </Paper>
+    <ItemListSection
+      title="関連論文"
+      items={draft.relatedPublication}
+      onItemsChange={handleItemsChange}
+      sectionStatus={sectionStatus}
+      onToggleStatus={onToggleStatus}
+      itemLabel="Publication"
+      confirmMessage={(p) => `Remove "${p.title.ja || p.title.en || "this publication"}"?`}
+      renderCard={(item, actions) => (
+        <PublicationCard publication={item} actions={actions} />
+      )}
+      renderEditDialog={({ open, item, onSave, onCancel }) => (
+        <PublicationEditDialog open={open} publication={item} onSave={onSave} onCancel={onCancel} />
+      )}
+    />
   )
 }, (prev, next) => prev.draft.relatedPublication === next.draft.relatedPublication && prev.sectionStatus === next.sectionStatus)

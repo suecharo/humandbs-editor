@@ -17,18 +17,21 @@ import TableRow from "@mui/material/TableRow"
 import Typography from "@mui/material/Typography"
 import { Fragment, useState } from "react"
 
+import { ConfirmDialog } from "@/components/common/ConfirmDialog"
 import { CurationStatusChip } from "@/components/CurationStatusChip"
 import { SectionHeader } from "@/components/SectionHeader"
 import type { CurationStatus, SectionCurationStatus } from "@/schemas/editor-state"
 import type { Research } from "@/schemas/research"
 import type { ResearchVersion } from "@/schemas/research-version"
-import { FORM_LABEL_SX, MONOSPACE_ID_SX, SECTION_GAP, SUBSECTION_GAP } from "@/theme"
+import { BUTTON_MIN_WIDTH_ACTION, FORM_LABEL_SX, MONOSPACE_ID_SX, SECTION_GAP, SUBSECTION_GAP } from "@/theme"
 
 interface BasicInfoSectionProps {
   research: Research
   versions: ResearchVersion[]
   curationStatus: CurationStatus
   dirty: boolean
+  saving: boolean
+  onSave: () => void
   onDiscardChanges: () => void
   onSetAllSections: (status: SectionCurationStatus) => void
 }
@@ -38,13 +41,24 @@ export const BasicInfoSection = ({
   versions,
   curationStatus,
   dirty,
+  saving,
+  onSave,
   onDiscardChanges,
   onSetAllSections,
 }: BasicInfoSectionProps) => {
   const [expandedVersion, setExpandedVersion] = useState<string | null>(null)
+  const [confirmAction, setConfirmAction] = useState<"save" | "discard" | "uncurated" | "curated" | null>(null)
 
   const handleToggleExpand = (versionId: string) => {
     setExpandedVersion((prev) => (prev === versionId ? null : versionId))
+  }
+
+  const handleConfirm = () => {
+    if (confirmAction === "save") onSave()
+    else if (confirmAction === "discard") onDiscardChanges()
+    else if (confirmAction === "uncurated") onSetAllSections("uncurated")
+    else if (confirmAction === "curated") onSetAllSections("curated")
+    setConfirmAction(null)
   }
 
   return (
@@ -55,32 +69,86 @@ export const BasicInfoSection = ({
           <SectionHeader title={research.humId} component="h1" />
           <CurationStatusChip status={curationStatus} />
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, "& .MuiButton-root": { minWidth: BUTTON_MIN_WIDTH_ACTION } }}>
           <Button
             size="small"
             variant="outlined"
-            disabled={!dirty}
-            onClick={onDiscardChanges}
+            color="success"
+            onClick={() => setConfirmAction("curated")}
           >
-            変更を破棄
+            全て Curated
           </Button>
           <Button
             size="small"
             variant="outlined"
-            onClick={() => onSetAllSections("uncurated")}
+            color="warning"
+            onClick={() => setConfirmAction("uncurated")}
           >
             全て Uncurated
           </Button>
           <Button
             size="small"
-            variant="outlined"
-            color="success"
-            onClick={() => onSetAllSections("curated")}
+            variant="contained"
+            color="primary"
+            disabled={!dirty || saving}
+            onClick={() => setConfirmAction("save")}
           >
-            全て Curated
+            {saving ? "保存中…" : "保存"}
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            disabled={!dirty}
+            onClick={() => setConfirmAction("discard")}
+          >
+            変更を破棄
           </Button>
         </Box>
       </Box>
+
+      <ConfirmDialog
+        open={confirmAction === "save"}
+        title="保存"
+        confirmLabel="保存"
+        confirmColor="primary"
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirmAction(null)}
+      >
+        編集内容を保存しますか？
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={confirmAction === "discard"}
+        title="変更を破棄"
+        confirmLabel="破棄"
+        confirmColor="primary"
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirmAction(null)}
+      >
+        未保存の変更をすべて破棄し、サーバーの状態に戻します。この操作は元に戻せません。
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={confirmAction === "uncurated"}
+        title="全て Uncurated に設定"
+        confirmLabel="Uncurated に設定"
+        confirmColor="warning"
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirmAction(null)}
+      >
+        全セクションの curation 状態を Uncurated にリセットします。
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={confirmAction === "curated"}
+        title="全て Curated に設定"
+        confirmLabel="Curated に設定"
+        confirmColor="success"
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirmAction(null)}
+      >
+        全セクションの curation 状態を Curated に設定します。
+      </ConfirmDialog>
 
       {/* Metadata */}
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1.5 }}>
@@ -143,7 +211,7 @@ const ReleasesTable = ({ versions, expandedVersion, onToggleExpand }: {
           <TableCell sx={{ width: 40, px: 0.5 }} />
           <TableCell>Version</TableCell>
           <TableCell>Release Date</TableCell>
-          <TableCell align="right">Datasets</TableCell>
+          <TableCell align="center">Datasets</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -167,7 +235,7 @@ const ReleasesTable = ({ versions, expandedVersion, onToggleExpand }: {
                 </TableCell>
                 <TableCell sx={MONOSPACE_ID_SX}>{v.version}</TableCell>
                 <TableCell>{v.versionReleaseDate}</TableCell>
-                <TableCell align="right">{v.datasets.length}</TableCell>
+                <TableCell align="center">{v.datasets.length}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell

@@ -12,11 +12,11 @@ const DEFAULT_EDITOR_STATE: EditorState = {
   experiments: {},
 }
 
-export const getEditorStatePath = (structuredJsonDir: string): string =>
-  path.join(structuredJsonDir, EDITOR_STATE_FILE)
+export const getEditorStatePath = (editorStateDir: string): string =>
+  path.join(editorStateDir, EDITOR_STATE_FILE)
 
-export const readEditorState = async (structuredJsonDir: string): Promise<EditorState> => {
-  const filePath = getEditorStatePath(structuredJsonDir)
+export const readEditorState = async (editorStateDir: string): Promise<EditorState> => {
+  const filePath = getEditorStatePath(editorStateDir)
   try {
     const content = await fs.readFile(filePath, "utf-8")
     const data: unknown = JSON.parse(content)
@@ -27,7 +27,8 @@ export const readEditorState = async (structuredJsonDir: string): Promise<Editor
   }
 }
 
-export const writeEditorState = async (structuredJsonDir: string, state: EditorState): Promise<void> => {
-  const filePath = getEditorStatePath(structuredJsonDir)
+export const writeEditorState = async (editorStateDir: string, state: EditorState): Promise<void> => {
+  const filePath = getEditorStatePath(editorStateDir)
+  await fs.mkdir(editorStateDir, { recursive: true })
   await fs.writeFile(filePath, JSON.stringify(state, null, 2), "utf-8")
 }

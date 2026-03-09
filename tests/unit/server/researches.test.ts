@@ -6,16 +6,20 @@ import { createResearchesRouter } from "../../../server/routes/researches"
 
 const mockReaddir = vi.fn()
 const mockReadFile = vi.fn()
+const mockWriteFile = vi.fn()
+const mockAccess = vi.fn()
 
 vi.mock("node:fs/promises", () => ({
   default: {
     readdir: (...args: unknown[]) => mockReaddir(...args),
     readFile: (...args: unknown[]) => mockReadFile(...args),
-    writeFile: vi.fn(),
+    writeFile: (...args: unknown[]) => mockWriteFile(...args),
+    access: (...args: unknown[]) => mockAccess(...args),
   },
   readdir: (...args: unknown[]) => mockReaddir(...args),
   readFile: (...args: unknown[]) => mockReadFile(...args),
-  writeFile: vi.fn(),
+  writeFile: (...args: unknown[]) => mockWriteFile(...args),
+  access: (...args: unknown[]) => mockAccess(...args),
 }))
 
 const mockResearch = (humId: string) => ({
@@ -58,6 +62,7 @@ const mockDataset = (datasetId: string, version: string, criteria: string) => ({
 })
 
 const STRUCTURED_JSON_DIR = "/test/structured-json"
+const EDITOR_STATE_DIR = "/test/data"
 
 interface RouteLayer {
   route?: {
@@ -69,20 +74,16 @@ interface RouteLayer {
 type Handler = (req: Request, res: Response, next: () => void) => Promise<void>
 
 const getHandler = (routePath: string, method = "get"): Handler => {
-  const router = createResearchesRouter(STRUCTURED_JSON_DIR)
+  const router = createResearchesRouter(STRUCTURED_JSON_DIR, EDITOR_STATE_DIR)
   const layers = (router as unknown as { stack: RouteLayer[] }).stack
 
-  const handle = layers
-    .find((l) => l.route?.path === routePath)
-    ?.route?.stack
-    .find((l) => l.method === method)
-    ?.handle
-
-  if (!handle) {
-    throw new Error(`${method.toUpperCase()} ${routePath} handler not found on router`)
+  for (const layer of layers) {
+    if (layer.route?.path !== routePath) continue
+    const match = layer.route.stack.find((l) => l.method === method)
+    if (match) return match.handle
   }
 
-  return handle
+  throw new Error(`${method.toUpperCase()} ${routePath} handler not found on router`)
 }
 
 describe("GET /api/researches", () => {
@@ -290,6 +291,110 @@ describe("GET /api/researches/:humId/versions", () => {
 
     const handler = getHandler("/:humId/versions")
     const req = { params: { humId: "hum9999" } } as unknown as Request
+    const json = vi.fn()
+    const status = vi.fn().mockReturnThis()
+    const res = { json, status } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(status).toHaveBeenCalledWith(500)
+  })
+})
+
+describe("PUT /api/researches/:humId", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(console, "error").mockImplementation(() => undefined)
+  })
+
+  it("saves research and returns the saved data", async () => {
+    const research = mockResearch("hum0001")
+    mockAccess.mockResolvedValue(undefined)
+    mockWriteFile.mockResolvedValue(undefined)
+
+    const handler = getHandler("/:humId", "put")
+    const req = { params: { humId: "hum0001" }, body: research } as unknown as Request
+    const json = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis() } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(json).toHaveBeenCalledTimes(1)
+    const result = json.mock.calls[0]![0] as { humId: string }
+    expect(result.humId).toBe("hum0001")
+    expect(mockWriteFile).toHaveBeenCalledWith(
+      path.join(STRUCTURED_JSON_DIR, "research", "hum0001.json"),
+      JSON.stringify(research, null, 2),
+      "utf-8",
+    )
+  })
+
+  it("returns 400 for invalid humId format", async () => {
+    const handler = getHandler("/:humId", "put")
+    const req = { params: { humId: "../etc/passwd" }, body: {} } as unknown as Request
+    const json = vi.fn()
+    const status = vi.fn().mockReturnThis()
+    const res = { json, status } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(status).toHaveBeenCalledWith(400)
+    expect(json).toHaveBeenCalledWith({ error: "Invalid humId format" })
+  })
+
+  it("returns 400 when body humId does not match URL parameter", async () => {
+    const research = mockResearch("hum0002")
+    mockAccess.mockResolvedValue(undefined)
+
+    const handler = getHandler("/:humId", "put")
+    const req = { params: { humId: "hum0001" }, body: research } as unknown as Request
+    const json = vi.fn()
+    const status = vi.fn().mockReturnThis()
+    const res = { json, status } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(status).toHaveBeenCalledWith(400)
+    expect(json).toHaveBeenCalledWith({ error: "humId in body does not match URL parameter" })
+  })
+
+  it("returns 400 for invalid request body", async () => {
+    const handler = getHandler("/:humId", "put")
+    const req = { params: { humId: "hum0001" }, body: { humId: "hum0001" } } as unknown as Request
+    const json = vi.fn()
+    const status = vi.fn().mockReturnThis()
+    const res = { json, status } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(status).toHaveBeenCalledWith(400)
+    const call = json.mock.calls[0]![0] as { error: string }
+    expect(call.error).toBe("Invalid request body")
+  })
+
+  it("returns 404 when research file does not exist", async () => {
+    const research = mockResearch("hum9999")
+    mockAccess.mockRejectedValue(new Error("ENOENT"))
+
+    const handler = getHandler("/:humId", "put")
+    const req = { params: { humId: "hum9999" }, body: research } as unknown as Request
+    const json = vi.fn()
+    const status = vi.fn().mockReturnThis()
+    const res = { json, status } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(status).toHaveBeenCalledWith(404)
+    expect(json).toHaveBeenCalledWith({ error: "Research hum9999 not found" })
+  })
+
+  it("returns 500 when writeFile fails", async () => {
+    const research = mockResearch("hum0001")
+    mockAccess.mockResolvedValue(undefined)
+    mockWriteFile.mockRejectedValue(new Error("EACCES"))
+
+    const handler = getHandler("/:humId", "put")
+    const req = { params: { humId: "hum0001" }, body: research } as unknown as Request
     const json = vi.fn()
     const status = vi.fn().mockReturnThis()
     const res = { json, status } as unknown as Response

@@ -29,7 +29,7 @@ export const AppHeader = () => (
   <AppBar sx={{ bgcolor: HEADER_BG }}>
     <Toolbar component="nav" aria-label="Main navigation" variant="dense" sx={{ minHeight: HEADER_HEIGHT, height: HEADER_HEIGHT }}>
       <Link to="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-        <Typography variant="h2" sx={{ color: "#FFFFFF", fontWeight: 700, letterSpacing: "0.04em" }}>
+        <Typography variant="h2" sx={{ color: NAV_LINK_HOVER_COLOR, fontWeight: 700, letterSpacing: "0.04em" }}>
           Human<Box component="span" sx={{ fontWeight: 800 }}>DBs</Box> Editor
         </Typography>
       </Link>

@@ -5,27 +5,21 @@ import { SectionCurationStatusSchema } from "../../src/schemas/editor-state"
 import type { SectionCurationStatus } from "../../src/schemas/editor-state"
 import { deriveCurationStatus, RESEARCH_SECTION_IDS } from "../../src/utils/curation"
 import { readEditorState, writeEditorState } from "../utils/editor-state"
-
-const HumIdSchema = z.string().regex(/^hum\d+$/)
+import { parseHumId } from "../utils/validate-hum-id"
 
 const UpdateBodySchema = z.object({
   sectionStatuses: z.record(z.string(), SectionCurationStatusSchema),
 })
 
-export const createCurationStatusRouter = (structuredJsonDir: string): Router => {
+export const createCurationStatusRouter = (editorStateDir: string): Router => {
   const router = Router()
 
   router.get("/research/:humId", async (req, res) => {
     try {
-      const humIdResult = HumIdSchema.safeParse(req.params.humId)
-      if (!humIdResult.success) {
-        res.status(400).json({ error: "Invalid humId format" })
+      const humId = parseHumId(req.params.humId, res)
+      if (humId === null) return
 
-        return
-      }
-
-      const humId = humIdResult.data
-      const editorState = await readEditorState(structuredJsonDir)
+      const editorState = await readEditorState(editorStateDir)
       const stored = editorState.researches[humId]?.sectionStatuses ?? {}
 
       const sectionStatuses: Record<string, SectionCurationStatus> = {}
@@ -45,12 +39,8 @@ export const createCurationStatusRouter = (structuredJsonDir: string): Router =>
 
   router.put("/research/:humId", async (req, res) => {
     try {
-      const humIdResult = HumIdSchema.safeParse(req.params.humId)
-      if (!humIdResult.success) {
-        res.status(400).json({ error: "Invalid humId format" })
-
-        return
-      }
+      const humId = parseHumId(req.params.humId, res)
+      if (humId === null) return
 
       const bodyResult = UpdateBodySchema.safeParse(req.body)
       if (!bodyResult.success) {
@@ -59,8 +49,7 @@ export const createCurationStatusRouter = (structuredJsonDir: string): Router =>
         return
       }
 
-      const humId = humIdResult.data
-      const editorState = await readEditorState(structuredJsonDir)
+      const editorState = await readEditorState(editorStateDir)
       const currentEntry = editorState.researches[humId]
       const currentSectionStatuses = currentEntry?.sectionStatuses ?? {}
 
@@ -82,7 +71,7 @@ export const createCurationStatusRouter = (structuredJsonDir: string): Router =>
         editingAt: currentEntry?.editingAt ?? null,
       }
 
-      await writeEditorState(structuredJsonDir, editorState)
+      await writeEditorState(editorStateDir, editorState)
 
       res.json({ status, sectionStatuses: merged })
     } catch (error) {

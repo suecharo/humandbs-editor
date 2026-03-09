@@ -25,15 +25,16 @@ import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
 import { useNavigate } from "@tanstack/react-router"
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo } from "react"
 
+import { TruncatedText } from "../components/common/TruncatedText"
 import { CurationStatusChip } from "../components/CurationStatusChip"
 import { SectionHeader } from "../components/SectionHeader"
 import { SortableTableCell } from "../components/SortableTableCell"
 import { useResearches } from "../hooks/use-researches"
 import { useSortState } from "../hooks/use-sort-state"
 import type { ResearchListItem } from "../schemas/research"
-import { CONTENT_MARGIN_Y, MONOSPACE_FONT_FAMILY, MONOSPACE_ID_SX } from "../theme"
+import { CONTENT_MARGIN_Y, EXPAND_ICON_SIZE, MONOSPACE_ID_SX, MONOSPACE_SMALL_SX } from "../theme"
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
@@ -73,37 +74,6 @@ const compareRows = (a: ResearchListItem, b: ResearchListItem, sortKey: SortKey)
 // Default sort when no column is explicitly selected
 const DEFAULT_SORT_KEY: SortKey = "humId"
 
-const TruncatedTitle = ({ text }: { text: string }) => {
-  const [truncated, setTruncated] = useState(false)
-
-  const checkTruncation = useCallback((el: HTMLSpanElement | null) => {
-    if (el) {
-      setTruncated(el.scrollWidth > el.clientWidth)
-    }
-  }, [])
-
-  const content = (
-    <Typography
-      ref={checkTruncation}
-      variant="body2"
-      component="span"
-      sx={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-    >
-      {text}
-    </Typography>
-  )
-
-  if (!truncated) {
-    return content
-  }
-
-  return (
-    <Tooltip title={text} placement="top-start">
-      {content}
-    </Tooltip>
-  )
-}
-
 const ExpandableDatasets = ({ count, datasetIds }: { count: number; datasetIds: string[] }) => {
   const [expanded, setExpanded] = useState(false)
 
@@ -121,7 +91,7 @@ const ExpandableDatasets = ({ count, datasetIds }: { count: number; datasetIds: 
             }}
             aria-label={expanded ? "Collapse datasets" : "Expand datasets"}
           >
-            {expanded ? <ExpandLessIcon sx={{ fontSize: 18 }} /> : <ExpandMoreIcon sx={{ fontSize: 18 }} />}
+            {expanded ? <ExpandLessIcon sx={{ fontSize: EXPAND_ICON_SIZE }} /> : <ExpandMoreIcon sx={{ fontSize: EXPAND_ICON_SIZE }} />}
           </IconButton>
         )}
       </Box>
@@ -132,7 +102,7 @@ const ExpandableDatasets = ({ count, datasetIds }: { count: number; datasetIds: 
               key={id}
               href={`/datasets/${id}`}
               variant="body2"
-              sx={{ fontFamily: MONOSPACE_FONT_FAMILY, fontSize: "0.75rem" }}
+              sx={MONOSPACE_SMALL_SX}
               onClick={(e) => e.stopPropagation()}
             >
               {id}
@@ -309,7 +279,7 @@ export const ResearchListPage = () => {
                     {r.humId}
                   </TableCell>
                   <TableCell>
-                    <TruncatedTitle text={r.title.ja ?? "-"} />
+                    <TruncatedText text={r.title.ja ?? "-"} />
                   </TableCell>
                   <TableCell sx={{ whiteSpace: "nowrap" }}>
                     {formatDateVersion(r.datePublished, 1)}

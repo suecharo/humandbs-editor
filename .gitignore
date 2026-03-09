@@ -154,6 +154,9 @@ reports/
 # structured-json data (copied from humandbs, too large for git)
 structured-json/
 
+# Editor state data (runtime-generated)
+data/
+
 # compose override (environment-specific, see compose.override.podman.yml)
 compose.override.yml
 

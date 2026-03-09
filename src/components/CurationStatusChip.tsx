@@ -1,3 +1,4 @@
+import CheckCircleIcon from "@mui/icons-material/CheckCircle"
 import Chip from "@mui/material/Chip"
 
 import type { CurationStatus } from "../schemas/editor-state"
@@ -15,5 +16,12 @@ const statusConfig: Record<string, { label: string; color: "default" | "warning"
 export const CurationStatusChip = ({ status }: CurationStatusChipProps) => {
   const config = statusConfig[status] ?? { label: status, color: "default" as const }
 
-  return <Chip label={config.label} color={config.color} variant="filled" />
+  return (
+    <Chip
+      icon={status === "curated" ? <CheckCircleIcon /> : undefined}
+      label={config.label}
+      color={config.color}
+      variant="filled"
+    />
+  )
 }

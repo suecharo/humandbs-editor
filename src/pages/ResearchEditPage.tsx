@@ -5,9 +5,9 @@ import Breadcrumbs from "@mui/material/Breadcrumbs"
 import CircularProgress from "@mui/material/CircularProgress"
 import Container from "@mui/material/Container"
 import Typography from "@mui/material/Typography"
-import { Link } from "@tanstack/react-router"
+import { Link, useBlocker } from "@tanstack/react-router"
 import { useAtom, useAtomValue, useSetAtom } from "jotai"
-import { useEffect } from "react"
+import { useCallback, useEffect } from "react"
 
 import { AppFooter } from "../components/layout/AppFooter"
 import { SplitLayout } from "../components/layout/SplitLayout"
@@ -18,6 +18,7 @@ import { TabbedPane } from "../components/research-edit/TabbedPane"
 import { useCurationStatus, useUpdateSectionStatus } from "../hooks/use-curation-status"
 import { useResearch } from "../hooks/use-research"
 import { useResearchVersions } from "../hooks/use-research-versions"
+import { useSaveResearch } from "../hooks/use-save-research"
 import { researchEditRoute } from "../router"
 import type { SectionCurationStatus } from "../schemas/editor-state"
 import { researchDirtyAtom, researchDraftAtom, researchServerAtom } from "../stores/research-edit"
@@ -31,8 +32,10 @@ export const ResearchEditPage = () => {
   const { data: versions } = useResearchVersions(humId)
   const { data: curationData } = useCurationStatus(humId)
   const updateSectionStatus = useUpdateSectionStatus(humId)
+  const saveMutation = useSaveResearch(humId)
   const [server, setServer] = useAtom(researchServerAtom)
   const setDraft = useSetAtom(researchDraftAtom)
+  const draft = useAtomValue(researchDraftAtom)
   const dirty = useAtomValue(researchDirtyAtom)
 
   useEffect(() => {
@@ -46,6 +49,37 @@ export const ResearchEditPage = () => {
     setServer(null)
     setDraft(null)
   }, [setServer, setDraft])
+
+  // Navigation guard: in-app navigation (TanStack Router)
+  useBlocker({
+    shouldBlockFn: useCallback(() => {
+      if (!dirty) return false
+
+      return !window.confirm("未保存の変更があります。このページを離れますか？")
+    }, [dirty]),
+  })
+
+  // Navigation guard: browser reload / tab close
+  useEffect(() => {
+    if (!dirty) return
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload)
+
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload)
+  }, [dirty])
+
+  const handleSave = () => {
+    if (!draft) return
+    saveMutation.mutate(draft, {
+      onSuccess: (saved) => {
+        setServer(saved)
+        setDraft(structuredClone(saved))
+      },
+    })
+  }
 
   const handleDiscardChanges = () => {
     if (server) setDraft(structuredClone(server))
@@ -105,6 +139,8 @@ export const ResearchEditPage = () => {
                 versions={versions ?? []}
                 curationStatus={curationData?.status ?? "uncurated"}
                 dirty={dirty}
+                saving={saveMutation.isPending}
+                onSave={handleSave}
                 onDiscardChanges={handleDiscardChanges}
                 onSetAllSections={handleSetAllSections}
               />

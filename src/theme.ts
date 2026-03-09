@@ -38,11 +38,24 @@ export const MONOSPACE_ID_SX = {
   fontSize: "0.8125rem",
 } as const
 
+export const MONOSPACE_SMALL_SX = {
+  fontFamily: MONOSPACE_FONT_FAMILY,
+  fontSize: "0.75rem",
+} as const
+
 // Spacing hierarchy
 
 export const SECTION_GAP = 3
 export const SUBSECTION_GAP = 2
 export const FIELD_GROUP_GAP = 1.5
+
+// Control sizing
+
+export const TOGGLE_BUTTON_MIN_WIDTH = 80
+export const TOGGLE_BUTTON_BORDER_RADIUS = "16px"
+export const DIALOG_MIN_WIDTH = 360
+export const BUTTON_MIN_WIDTH_ACTION = 140
+export const EXPAND_ICON_SIZE = "1.125rem"
 
 // Heading tokens
 
@@ -64,6 +77,26 @@ export const ALPHA_BG_SECONDARY_SUBTLE = "rgba(191, 109, 74, 0.12)"
 export const ALPHA_BG_WARNING_SUBTLE = "rgba(173, 139, 30, 0.12)"
 export const ALPHA_BG_ERROR_SUBTLE = "rgba(201, 60, 60, 0.12)"
 export const ALPHA_BG_INFO_SUBTLE = "rgba(40, 137, 172, 0.12)"
+
+// Search / lookup field -- visually distinct from data-entry fields
+
+export const SEARCH_FIELD_SX = {
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "#F1F5F9",
+    borderRadius: "8px",
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderStyle: "dashed",
+      borderColor: "#94A3B8",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#64748B",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#4960D3",
+      borderStyle: "solid",
+    },
+  },
+} as const
 
 // Form label
 

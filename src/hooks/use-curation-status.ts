@@ -3,6 +3,7 @@ import { z } from "zod/v4"
 
 import type { SectionCurationStatus } from "../schemas/editor-state"
 import { CurationStatusSchema, SectionCurationStatusSchema } from "../schemas/editor-state"
+import { fetchApi } from "../utils/fetch-api"
 
 const ResearchCurationStatusSchema = z.object({
   status: CurationStatusSchema,
@@ -11,35 +12,29 @@ const ResearchCurationStatusSchema = z.object({
 
 export type ResearchCurationStatus = z.infer<typeof ResearchCurationStatusSchema>
 
-const fetchCurationStatus = async (humId: string): Promise<ResearchCurationStatus> => {
-  const res = await fetch(`/api/curation-status/research/${encodeURIComponent(humId)}`)
-  if (!res.ok) throw new Error(`Failed to fetch curation status: ${res.status}`)
-  const data: unknown = await res.json()
-
-  return ResearchCurationStatusSchema.parse(data)
-}
-
 export const useCurationStatus = (humId: string) =>
   useQuery({
     queryKey: ["curation-status", "research", humId],
-    queryFn: () => fetchCurationStatus(humId),
+    queryFn: () => fetchApi(
+      `/api/curation-status/research/${encodeURIComponent(humId)}`,
+      ResearchCurationStatusSchema,
+    ),
   })
 
 export const useUpdateSectionStatus = (humId: string) => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (sectionStatuses: Record<string, SectionCurationStatus>) => {
-      const res = await fetch(`/api/curation-status/research/${encodeURIComponent(humId)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sectionStatuses }),
-      })
-      if (!res.ok) throw new Error(`Failed to update curation status: ${res.status}`)
-      const data: unknown = await res.json()
-
-      return ResearchCurationStatusSchema.parse(data)
-    },
+    mutationFn: async (sectionStatuses: Record<string, SectionCurationStatus>) =>
+      fetchApi(
+        `/api/curation-status/research/${encodeURIComponent(humId)}`,
+        ResearchCurationStatusSchema,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sectionStatuses }),
+        },
+      ),
     onSuccess: (data) => {
       queryClient.setQueryData(["curation-status", "research", humId], data)
     },

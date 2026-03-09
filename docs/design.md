@@ -174,20 +174,20 @@ humandbs と同じ Keycloak インスタンスを OIDC で利用する。
 編集はクライアント側で保持し、明示的な確定操作まで API server に write しない。
 
 ```
-open       edit        review      confirm
- |          |           |           |
- v          v           v           v
-load  ->  in-memory  -> diff  ->  PUT /api/...
-(GET)     (React state) view      (write to FS)
-                         |
-                     [undo] -> revert to loaded state
+open       edit       confirm
+ |          |           |
+ v          v           v
+load  ->  in-memory  -> PUT /api/...
+(GET)     (React state) (write to FS)
+                 |
+             [undo] -> revert to loaded state
 ```
 
 1. **編集画面を開く**: `GET` で現在のデータを取得
 2. **編集**: フォームの変更はクライアントの React state にのみ保持。API server への書き込みは発生しない
-3. **diff 確認**: 保存ボタン押下時にフィールドごとの変更差分 (before/after) を表示
-4. **確定**: diff 確認画面で「確定」を押すと `PUT` で API server に送信し、structured-json に書き込む
-5. **undo**: 編集中いつでも、読み込み時の状態に戻せる。未保存の変更をすべて破棄する
+3. **確定**: 保存ボタン押下 → 確認ダイアログ → `PUT` で API server に送信し、structured-json に書き込む
+4. **undo**: 編集中いつでも、読み込み時の状態に戻せる。未保存の変更をすべて破棄する
+5. **離脱警告**: 未保存の変更がある状態でページ遷移・リロードしようとすると確認ダイアログを表示する
 
 ## API 設計
 
