@@ -3,7 +3,7 @@ import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 
 import type { BilingualText } from "@/schemas/common"
-import { FIELD_GROUP_GAP, FORM_FIELD_MAX_WIDTH, FORM_LABEL_SX, SUBSECTION_GAP } from "@/theme"
+import { FIELD_GROUP_GAP, FORM_FIELD_MAX_WIDTH, FORM_LABEL_SX } from "@/theme"
 
 interface BilingualTextFieldProps {
   label: string
@@ -20,7 +20,7 @@ export const BilingualTextField = ({
   readOnly = false,
   multiline = false,
 }: BilingualTextFieldProps) => (
-  <Box sx={{ mb: SUBSECTION_GAP }}>
+  <Box>
     <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: 1 }}>
       {label}
     </Typography>

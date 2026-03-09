@@ -276,6 +276,7 @@ const ReleasesTable = ({ versions, expandedVersion, onToggleExpand }: {
                               label={`${ds.datasetId} (${ds.version})`}
                               size="small"
                               variant="outlined"
+                              sx={{ fontFamily: "monospace" }}
                             />
                           ))}
                         </Box>

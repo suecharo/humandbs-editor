@@ -3,13 +3,14 @@ import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 
 import type { BilingualTextValue } from "@/schemas/common"
-import { FIELD_GROUP_GAP, FORM_FIELD_MAX_WIDTH, FORM_LABEL_SX, SUBSECTION_GAP } from "@/theme"
+import { FIELD_GROUP_GAP, FORM_FIELD_MAX_WIDTH, FORM_LABEL_SX } from "@/theme"
 
 interface BilingualTextValueFieldProps {
   label: string
   value: BilingualTextValue
   onChange: (value: BilingualTextValue) => void
   readOnly?: boolean
+  multiline?: boolean
 }
 
 export const BilingualTextValueField = ({
@@ -17,8 +18,9 @@ export const BilingualTextValueField = ({
   value,
   onChange,
   readOnly = false,
+  multiline = true,
 }: BilingualTextValueFieldProps) => (
-  <Box sx={{ mb: SUBSECTION_GAP }}>
+  <Box>
     <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: 1 }}>
       {label}
     </Typography>
@@ -32,8 +34,8 @@ export const BilingualTextValueField = ({
             ? { ...value.ja, text: e.target.value }
             : { text: e.target.value, rawHtml: "" },
         })}
-        multiline
-        minRows={2}
+        multiline={multiline}
+        minRows={multiline ? 2 : undefined}
         slotProps={{ input: { readOnly } }}
         fullWidth
       />
@@ -46,8 +48,8 @@ export const BilingualTextValueField = ({
             ? { ...value.en, text: e.target.value }
             : { text: e.target.value, rawHtml: "" },
         })}
-        multiline
-        minRows={2}
+        multiline={multiline}
+        minRows={multiline ? 2 : undefined}
         slotProps={{ input: { readOnly } }}
         fullWidth
       />

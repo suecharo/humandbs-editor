@@ -1,10 +1,12 @@
-import Chip from "@mui/material/Chip"
+import Box from "@mui/material/Box"
+import Link from "@mui/material/Link"
 import Paper from "@mui/material/Paper"
-import Stack from "@mui/material/Stack"
+import Typography from "@mui/material/Typography"
 
+import { BilingualCardContent } from "@/components/common/BilingualCardContent"
 import { CardActionButtons } from "@/components/common/CardActionButtons"
+import { CollapsibleChips } from "@/components/common/CollapsibleChips"
 import type { CardActions } from "@/components/common/ItemCardList"
-import { TruncatedText } from "@/components/common/TruncatedText"
 import type { Publication } from "@/schemas/research"
 
 interface PublicationCardProps {
@@ -12,24 +14,27 @@ interface PublicationCardProps {
   actions: CardActions
 }
 
-export const PublicationCard = ({ publication, actions }: PublicationCardProps) => {
-  const title = publication.title.ja || publication.title.en || "(untitled)"
-
-  return (
-    <Paper variant="outlined" sx={{ p: 2, display: "flex", alignItems: "center" }}>
-      <Stack sx={{ flex: 1, minWidth: 0 }}>
-        <TruncatedText text={title} variant="body1" fontWeight={500} />
+export const PublicationCard = ({ publication, actions }: PublicationCardProps) => (
+  <Paper variant="outlined" sx={{ p: 2 }}>
+    <Box sx={{ display: "flex", alignItems: "flex-start", gap: 0.5 }}>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <BilingualCardContent
+          rows={[{ label: "タイトル", ja: publication.title.ja, en: publication.title.en }]}
+        />
         {publication.doi && (
-          <TruncatedText text={`DOI: ${publication.doi}`} color="text.secondary" />
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            DOI:{" "}
+            <Link
+              href={publication.doi.startsWith("http") ? publication.doi : `https://doi.org/${publication.doi}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {publication.doi}
+            </Link>
+          </Typography>
         )}
-        {publication.datasetIds && publication.datasetIds.length > 0 && (
-          <Stack direction="row" spacing={0.5} sx={{ mt: 0.5, flexWrap: "wrap" }}>
-            {publication.datasetIds.map((id) => (
-              <Chip key={id} label={id} size="small" />
-            ))}
-          </Stack>
-        )}
-      </Stack>
+        {publication.datasetIds && <CollapsibleChips ids={publication.datasetIds} />}
+      </Box>
       <CardActionButtons
         label="publication"
         index={actions.index}
@@ -40,6 +45,6 @@ export const PublicationCard = ({ publication, actions }: PublicationCardProps) 
         onMoveUp={actions.onMoveUp}
         onMoveDown={actions.onMoveDown}
       />
-    </Paper>
-  )
-}
+    </Box>
+  </Paper>
+)

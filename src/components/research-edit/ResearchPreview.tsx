@@ -134,7 +134,7 @@ export const ResearchPreview = ({ lang }: { lang: Lang }) => {
               </Typography>
               {g.id.length > 0 && (
                 <Box sx={{ display: "flex", gap: 0.5, mt: 0.5 }}>
-                  {g.id.map((id) => <Chip key={id} label={id} size="small" />)}
+                  {g.id.map((id) => <Chip key={id} label={id} size="small" sx={{ fontFamily: "monospace" }} />)}
                 </Box>
               )}
               {i < draft.grant.length - 1 && <Divider sx={{ mt: FIELD_GROUP_GAP }} />}

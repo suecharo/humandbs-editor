@@ -27,13 +27,13 @@ export const CardActionButtons = ({
   onMoveUp,
   onMoveDown,
 }: CardActionButtonsProps) => (
-  <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
-    <Tooltip title="Edit">
+  <Stack sx={{ flexShrink: 0, alignItems: "center" }}>
+    <Tooltip title="Edit" placement="left">
       <IconButton size="small" onClick={onEdit} aria-label={`edit ${label} ${index + 1}`}>
-        <EditOutlined fontSize="small" />
+        <EditOutlined sx={{ fontSize: "1.125rem" }} />
       </IconButton>
     </Tooltip>
-    <Tooltip title="Move up">
+    <Tooltip title="Move up" placement="left">
       <span>
         <IconButton
           size="small"
@@ -41,11 +41,11 @@ export const CardActionButtons = ({
           disabled={isFirst}
           aria-label={`move ${label} ${index + 1} up`}
         >
-          <ArrowUpwardOutlined fontSize="small" />
+          <ArrowUpwardOutlined sx={{ fontSize: "1.125rem" }} />
         </IconButton>
       </span>
     </Tooltip>
-    <Tooltip title="Move down">
+    <Tooltip title="Move down" placement="left">
       <span>
         <IconButton
           size="small"
@@ -53,18 +53,18 @@ export const CardActionButtons = ({
           disabled={isLast}
           aria-label={`move ${label} ${index + 1} down`}
         >
-          <ArrowDownwardOutlined fontSize="small" />
+          <ArrowDownwardOutlined sx={{ fontSize: "1.125rem" }} />
         </IconButton>
       </span>
     </Tooltip>
-    <Tooltip title="Remove">
+    <Tooltip title="Remove" placement="left">
       <IconButton
         size="small"
         color="error"
         onClick={onRemove}
         aria-label={`remove ${label} ${index + 1}`}
       >
-        <DeleteOutlined fontSize="small" />
+        <DeleteOutlined sx={{ fontSize: "1.125rem" }} />
       </IconButton>
     </Tooltip>
   </Stack>

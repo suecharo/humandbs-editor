@@ -11,7 +11,7 @@ import Typography from "@mui/material/Typography"
 import { useDialogDraft } from "@/hooks/use-dialog-draft"
 import { createDefaultPublication } from "@/schemas/defaults"
 import type { Publication } from "@/schemas/research"
-import { FORM_LABEL_SX, SUBSECTION_GAP } from "@/theme"
+import { DIALOG_PADDING, DIALOG_TITLE_SX, FORM_LABEL_SX, SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextField } from "../fields/BilingualTextField"
 
@@ -37,11 +37,11 @@ export const PublicationEditDialog = ({
 
   return (
     <Dialog open={open} onClose={onCancel} maxWidth="md" fullWidth>
-      <DialogTitle>{isNew ? "Add Publication" : "Edit Publication"}</DialogTitle>
-      <DialogContent dividers>
+      <DialogTitle sx={DIALOG_TITLE_SX}>{isNew ? "関連論文を追加" : "関連論文を編集"}</DialogTitle>
+      <DialogContent dividers sx={{ p: DIALOG_PADDING }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP }}>
           <BilingualTextField
-            label="Title"
+            label="タイトル"
             value={draft.title}
             onChange={(title) => setDraft((prev) => ({ ...prev, title }))}
           />
@@ -54,21 +54,21 @@ export const PublicationEditDialog = ({
           {draft.datasetIds && draft.datasetIds.length > 0 && (
             <Box>
               <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: 0.5 }}>
-                Dataset IDs (read-only)
+                データセットID（読み取り専用）
               </Typography>
               <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
                 {draft.datasetIds.map((id) => (
-                  <Chip key={id} label={id} size="small" />
+                  <Chip key={id} label={id} size="small" sx={{ fontFamily: "monospace" }} />
                 ))}
               </Box>
             </Box>
           )}
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button variant="outlined" onClick={onCancel}>Cancel</Button>
+      <DialogActions sx={{ p: DIALOG_PADDING }}>
+        <Button variant="outlined" onClick={onCancel}>キャンセル</Button>
         <Button onClick={() => onSave(draft)} variant="contained">
-          {isNew ? "Add" : "Save"}
+          {isNew ? "追加" : "保存"}
         </Button>
       </DialogActions>
     </Dialog>

@@ -5,7 +5,6 @@ export const RESEARCH_SECTION_IDS = [
   "summary",
   "datasets",
   "dataProvider",
-  "researchProject",
   "grant",
   "publication",
   "controlledAccessUser",

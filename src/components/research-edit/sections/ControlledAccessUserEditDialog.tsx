@@ -13,7 +13,7 @@ import { useDialogDraft } from "@/hooks/use-dialog-draft"
 import type { OrcidSearchResult } from "@/hooks/use-orcid-search"
 import { createDefaultControlledAccessUser } from "@/schemas/defaults"
 import type { Person } from "@/schemas/research"
-import { FORM_LABEL_SX, SUBSECTION_GAP } from "@/theme"
+import { DIALOG_PADDING, DIALOG_TITLE_SX, FORM_LABEL_SX, SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextField } from "../fields/BilingualTextField"
 import { BilingualTextValueField } from "../fields/BilingualTextValueField"
@@ -61,17 +61,18 @@ export const ControlledAccessUserEditDialog = ({
 
   return (
     <Dialog open={open} onClose={onCancel} maxWidth="md" fullWidth>
-      <DialogTitle>{isNew ? "Add User" : "Edit User"}</DialogTitle>
-      <DialogContent dividers>
+      <DialogTitle sx={DIALOG_TITLE_SX}>{isNew ? "利用者を追加" : "利用者を編集"}</DialogTitle>
+      <DialogContent dividers sx={{ p: DIALOG_PADDING }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP }}>
           <OrcidAutocomplete onSelect={handleOrcidSelect} />
           <BilingualTextValueField
-            label="Name"
+            label="氏名"
             value={draft.name}
             onChange={(name) => setDraft((prev) => ({ ...prev, name }))}
+            multiline={false}
           />
           <TextField
-            label="Email"
+            label="メールアドレス"
             value={draft.email ?? ""}
             onChange={(e) => setDraft((prev) => ({ ...prev, email: e.target.value || null }))}
             fullWidth
@@ -84,18 +85,19 @@ export const ControlledAccessUserEditDialog = ({
           />
           {draft.organization && (
             <BilingualTextValueField
-              label="Organization"
+              label="所属機関"
               value={draft.organization.name}
               onChange={(name) => {
                 const { organization } = draft
                 if (!organization) return
                 setDraft((prev) => ({ ...prev, organization: { ...organization, name } }))
               }}
+              multiline={false}
             />
           )}
           {draft.researchTitle && (
             <BilingualTextField
-              label="Research Title"
+              label="研究題目"
               value={draft.researchTitle}
               onChange={(researchTitle) => setDraft((prev) => ({ ...prev, researchTitle }))}
             />
@@ -103,7 +105,7 @@ export const ControlledAccessUserEditDialog = ({
           {draft.periodOfDataUse && (
             <Box sx={{ display: "flex", gap: 1 }}>
               <TextField
-                label="Period Start"
+                label="利用開始日"
                 value={draft.periodOfDataUse.startDate ?? ""}
                 onChange={(e) => {
                   const { periodOfDataUse } = draft
@@ -115,7 +117,7 @@ export const ControlledAccessUserEditDialog = ({
                 }}
               />
               <TextField
-                label="Period End"
+                label="利用終了日"
                 value={draft.periodOfDataUse.endDate ?? ""}
                 onChange={(e) => {
                   const { periodOfDataUse } = draft
@@ -131,21 +133,21 @@ export const ControlledAccessUserEditDialog = ({
           {draft.datasetIds && draft.datasetIds.length > 0 && (
             <Box>
               <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: 0.5 }}>
-                Dataset IDs (read-only)
+                データセットID（読み取り専用）
               </Typography>
               <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
                 {draft.datasetIds.map((id) => (
-                  <Chip key={id} label={id} size="small" />
+                  <Chip key={id} label={id} size="small" sx={{ fontFamily: "monospace" }} />
                 ))}
               </Box>
             </Box>
           )}
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button variant="outlined" onClick={onCancel}>Cancel</Button>
+      <DialogActions sx={{ p: DIALOG_PADDING }}>
+        <Button variant="outlined" onClick={onCancel}>キャンセル</Button>
         <Button onClick={() => onSave(draft)} variant="contained">
-          {isNew ? "Add" : "Save"}
+          {isNew ? "追加" : "保存"}
         </Button>
       </DialogActions>
     </Dialog>

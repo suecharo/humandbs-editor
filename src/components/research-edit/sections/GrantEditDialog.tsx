@@ -11,7 +11,7 @@ import TextField from "@mui/material/TextField"
 import { useDialogDraft } from "@/hooks/use-dialog-draft"
 import { createDefaultGrant } from "@/schemas/defaults"
 import type { Grant } from "@/schemas/research"
-import { SUBSECTION_GAP } from "@/theme"
+import { DIALOG_PADDING, DIALOG_TITLE_SX, SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextField } from "../fields/BilingualTextField"
 
@@ -37,9 +37,19 @@ export const GrantEditDialog = ({
 
   return (
     <Dialog open={open} onClose={onCancel} maxWidth="md" fullWidth>
-      <DialogTitle>{isNew ? "Add Grant" : "Edit Grant"}</DialogTitle>
-      <DialogContent dividers>
+      <DialogTitle sx={DIALOG_TITLE_SX}>{isNew ? "科研費/助成金を追加" : "科研費/助成金を編集"}</DialogTitle>
+      <DialogContent dividers sx={{ p: DIALOG_PADDING }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP }}>
+          <BilingualTextField
+            label="タイトル"
+            value={draft.title}
+            onChange={(title) => setDraft((prev) => ({ ...prev, title }))}
+          />
+          <BilingualTextField
+            label="助成金名"
+            value={draft.agency.name}
+            onChange={(name) => setDraft((prev) => ({ ...prev, agency: { name } }))}
+          />
           <Autocomplete
             multiple
             freeSolo
@@ -55,33 +65,23 @@ export const GrantEditDialog = ({
               value.map((id, index) => {
                 const { key, ...tagProps } = getTagProps({ index })
 
-                return <Chip key={key} label={id} size="small" {...tagProps} />
+                return <Chip key={key} label={id} size="small" sx={{ fontFamily: "monospace" }} {...tagProps} />
               })
             }
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Grant IDs"
+                label="課題番号"
                 placeholder="Enter で追加"
               />
             )}
           />
-          <BilingualTextField
-            label="Title"
-            value={draft.title}
-            onChange={(title) => setDraft((prev) => ({ ...prev, title }))}
-          />
-          <BilingualTextField
-            label="Agency Name"
-            value={draft.agency.name}
-            onChange={(name) => setDraft((prev) => ({ ...prev, agency: { name } }))}
-          />
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button variant="outlined" onClick={onCancel}>Cancel</Button>
+      <DialogActions sx={{ p: DIALOG_PADDING }}>
+        <Button variant="outlined" onClick={onCancel}>キャンセル</Button>
         <Button onClick={() => onSave(draft)} variant="contained">
-          {isNew ? "Add" : "Save"}
+          {isNew ? "追加" : "保存"}
         </Button>
       </DialogActions>
     </Dialog>

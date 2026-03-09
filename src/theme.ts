@@ -98,6 +98,25 @@ export const SEARCH_FIELD_SX = {
   },
 } as const
 
+// Dialog
+
+export const DIALOG_TITLE_SX = {
+  pl: HEADING_PL + 2, // extra space for border + default padding
+  position: "relative",
+  "&::before": {
+    content: "\"\"",
+    position: "absolute",
+    left: "16px",
+    top: "12px",
+    bottom: "12px",
+    width: HEADING_BORDER_SMALL,
+    bgcolor: "secondary.main",
+    borderRadius: HEADING_BORDER_SMALL,
+  },
+} as const
+
+export const DIALOG_PADDING = 2.5
+
 // Form label
 
 export const FORM_LABEL_SX = {

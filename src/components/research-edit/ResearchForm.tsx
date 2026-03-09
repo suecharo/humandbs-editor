@@ -11,7 +11,6 @@ import { DataProviderSection } from "./sections/DataProviderSection"
 import { DatasetsSection } from "./sections/DatasetsSection"
 import { GrantSection } from "./sections/GrantSection"
 import { PublicationSection } from "./sections/PublicationSection"
-import { ResearchProjectSection } from "./sections/ResearchProjectSection"
 import { SummarySection } from "./sections/SummarySection"
 import { TitleSection } from "./sections/TitleSection"
 
@@ -51,12 +50,6 @@ export const ResearchForm = ({ versions, sectionStatuses, onToggleSection }: Res
         onChange={setDraft}
         sectionStatus={sectionStatuses.dataProvider ?? "uncurated"}
         onToggleStatus={() => onToggleSection("dataProvider")}
-      />
-      <ResearchProjectSection
-        draft={draft}
-        onChange={setDraft}
-        sectionStatus={sectionStatuses.researchProject ?? "uncurated"}
-        onToggleStatus={() => onToggleSection("researchProject")}
       />
       <GrantSection
         draft={draft}

@@ -31,21 +31,23 @@ export const SummarySection = memo(({ draft, onChange, sectionStatus, onToggleSt
           ) : undefined}
         />
       </Box>
-      <BilingualTextValueField
-        label="目的"
-        value={summary.aims}
-        onChange={(aims) => onChange({ ...draft, summary: { ...summary, aims } })}
-      />
-      <BilingualTextValueField
-        label="方法"
-        value={summary.methods}
-        onChange={(methods) => onChange({ ...draft, summary: { ...summary, methods } })}
-      />
-      <BilingualTextValueField
-        label="対象"
-        value={summary.targets}
-        onChange={(targets) => onChange({ ...draft, summary: { ...summary, targets } })}
-      />
+      <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP }}>
+        <BilingualTextValueField
+          label="目的"
+          value={summary.aims}
+          onChange={(aims) => onChange({ ...draft, summary: { ...summary, aims } })}
+        />
+        <BilingualTextValueField
+          label="方法"
+          value={summary.methods}
+          onChange={(methods) => onChange({ ...draft, summary: { ...summary, methods } })}
+        />
+        <BilingualTextValueField
+          label="対象"
+          value={summary.targets}
+          onChange={(targets) => onChange({ ...draft, summary: { ...summary, targets } })}
+        />
+      </Box>
     </Paper>
   )
 }, (prev, next) => prev.draft.summary === next.draft.summary && prev.sectionStatus === next.sectionStatus)

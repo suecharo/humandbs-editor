@@ -11,7 +11,7 @@ import { useDialogDraft } from "@/hooks/use-dialog-draft"
 import type { OrcidSearchResult } from "@/hooks/use-orcid-search"
 import { createDefaultPerson } from "@/schemas/defaults"
 import type { Person } from "@/schemas/research"
-import { SUBSECTION_GAP } from "@/theme"
+import { DIALOG_PADDING, DIALOG_TITLE_SX, SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextValueField } from "../fields/BilingualTextValueField"
 
@@ -58,17 +58,18 @@ export const DataProviderEditDialog = ({
 
   return (
     <Dialog open={open} onClose={onCancel} maxWidth="md" fullWidth>
-      <DialogTitle>{isNew ? "Add Provider" : "Edit Provider"}</DialogTitle>
-      <DialogContent dividers>
+      <DialogTitle sx={DIALOG_TITLE_SX}>{isNew ? "提供者を追加" : "提供者を編集"}</DialogTitle>
+      <DialogContent dividers sx={{ p: DIALOG_PADDING }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP }}>
           <OrcidAutocomplete onSelect={handleOrcidSelect} />
           <BilingualTextValueField
-            label="Name"
+            label="研究代表者"
             value={draft.name}
             onChange={(name) => setDraft((prev) => ({ ...prev, name }))}
+            multiline={false}
           />
           <TextField
-            label="Email"
+            label="メールアドレス"
             value={draft.email ?? ""}
             onChange={(e) => setDraft((prev) => ({ ...prev, email: e.target.value || null }))}
             fullWidth
@@ -81,21 +82,22 @@ export const DataProviderEditDialog = ({
           />
           {draft.organization && (
             <BilingualTextValueField
-              label="Organization"
+              label="所属機関"
               value={draft.organization.name}
               onChange={(name) => {
                 const { organization } = draft
                 if (!organization) return
                 setDraft((prev) => ({ ...prev, organization: { ...organization, name } }))
               }}
+              multiline={false}
             />
           )}
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button variant="outlined" onClick={onCancel}>Cancel</Button>
+      <DialogActions sx={{ p: DIALOG_PADDING }}>
+        <Button variant="outlined" onClick={onCancel}>キャンセル</Button>
         <Button onClick={() => onSave(draft)} variant="contained">
-          {isNew ? "Add" : "Save"}
+          {isNew ? "追加" : "保存"}
         </Button>
       </DialogActions>
     </Dialog>

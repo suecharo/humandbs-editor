@@ -1,10 +1,11 @@
-import Chip from "@mui/material/Chip"
+import Box from "@mui/material/Box"
 import Paper from "@mui/material/Paper"
-import Stack from "@mui/material/Stack"
+import Typography from "@mui/material/Typography"
 
+import { BilingualCardContent, type BilingualRow } from "@/components/common/BilingualCardContent"
 import { CardActionButtons } from "@/components/common/CardActionButtons"
+import { CollapsibleChips } from "@/components/common/CollapsibleChips"
 import type { CardActions } from "@/components/common/ItemCardList"
-import { TruncatedText } from "@/components/common/TruncatedText"
 import type { Person } from "@/schemas/research"
 
 interface ControlledAccessUserCardProps {
@@ -13,45 +14,44 @@ interface ControlledAccessUserCardProps {
 }
 
 export const ControlledAccessUserCard = ({ user, actions }: ControlledAccessUserCardProps) => {
-  const name = user.name.ja?.text || user.name.en?.text || "(unnamed)"
-  const orgName = user.organization?.name.ja?.text || user.organization?.name.en?.text
-  const researchTitle = user.researchTitle?.ja || user.researchTitle?.en
+  const rows: BilingualRow[] = [
+    { label: "氏名", ja: user.name.ja?.text, en: user.name.en?.text },
+  ]
+  if (user.organization) {
+    rows.push({ label: "所属機関", ja: user.organization.name.ja?.text, en: user.organization.name.en?.text })
+  }
+  if (user.researchTitle) {
+    rows.push({ label: "研究題目", ja: user.researchTitle.ja, en: user.researchTitle.en })
+  }
+
   const period = user.periodOfDataUse
   const periodText = period
     ? [period.startDate, period.endDate].filter(Boolean).join(" - ")
     : null
 
   return (
-    <Paper variant="outlined" sx={{ p: 2, display: "flex", alignItems: "center" }}>
-      <Stack sx={{ flex: 1, minWidth: 0 }}>
-        <TruncatedText text={name} variant="body1" fontWeight={500} />
-        {orgName && (
-          <TruncatedText text={orgName} color="text.secondary" />
-        )}
-        {researchTitle && (
-          <TruncatedText text={researchTitle} color="text.secondary" />
-        )}
-        {periodText && (
-          <TruncatedText text={periodText} color="text.secondary" />
-        )}
-        {user.datasetIds && user.datasetIds.length > 0 && (
-          <Stack direction="row" spacing={0.5} sx={{ mt: 0.5, flexWrap: "wrap" }}>
-            {user.datasetIds.map((id) => (
-              <Chip key={id} label={id} size="small" />
-            ))}
-          </Stack>
-        )}
-      </Stack>
-      <CardActionButtons
-        label="user"
-        index={actions.index}
-        isFirst={actions.isFirst}
-        isLast={actions.isLast}
-        onEdit={actions.onEdit}
-        onRemove={actions.onRemove}
-        onMoveUp={actions.onMoveUp}
-        onMoveDown={actions.onMoveDown}
-      />
+    <Paper variant="outlined" sx={{ p: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "flex-start", gap: 0.5 }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <BilingualCardContent rows={rows} />
+          {periodText && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              {periodText}
+            </Typography>
+          )}
+          {user.datasetIds && <CollapsibleChips ids={user.datasetIds} />}
+        </Box>
+        <CardActionButtons
+          label="user"
+          index={actions.index}
+          isFirst={actions.isFirst}
+          isLast={actions.isLast}
+          onEdit={actions.onEdit}
+          onRemove={actions.onRemove}
+          onMoveUp={actions.onMoveUp}
+          onMoveDown={actions.onMoveDown}
+        />
+      </Box>
     </Paper>
   )
 }
