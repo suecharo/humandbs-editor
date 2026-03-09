@@ -166,6 +166,45 @@ export const createResearchesRouter = (structuredJsonDir: string, editorStateDir
     }
   })
 
+  router.put("/:humId/versions", async (req, res) => {
+    try {
+      const humId = parseHumId(req.params.humId, res)
+      if (humId === null) return
+
+      const bodyResult = ResearchVersionSchema.array().safeParse(req.body)
+      if (!bodyResult.success) {
+        res.status(400).json({ error: "Invalid request body", details: bodyResult.error.issues })
+
+        return
+      }
+
+      for (const version of bodyResult.data) {
+        if (version.humId !== humId) {
+          res.status(400).json({ error: `humId mismatch in version ${version.humVersionId}` })
+
+          return
+        }
+
+        const filePath = path.join(structuredJsonDir, "research-version", `${version.humVersionId}.json`)
+        try {
+          await fs.access(filePath)
+        } catch {
+          res.status(404).json({ error: `Version ${version.humVersionId} not found` })
+
+          return
+        }
+
+        await fs.writeFile(filePath, JSON.stringify(version, null, 2), "utf-8")
+      }
+
+      res.json(bodyResult.data)
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(`Failed to update versions for ${req.params.humId}:`, error)
+      res.status(500).json({ error: `Failed to update versions for ${req.params.humId}` })
+    }
+  })
+
   router.get("/:humId/original", async (req, res) => {
     try {
       const humId = parseHumId(req.params.humId, res)

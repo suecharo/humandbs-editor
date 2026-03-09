@@ -18,9 +18,11 @@ import { useCurationStatus, useUpdateSectionStatus } from "../hooks/use-curation
 import { useResearch } from "../hooks/use-research"
 import { useResearchVersions } from "../hooks/use-research-versions"
 import { useSaveResearch } from "../hooks/use-save-research"
+import { useSaveResearchVersions } from "../hooks/use-save-research-versions"
 import { researchEditRoute } from "../router"
 import type { SectionCurationStatus } from "../schemas/editor-state"
-import { researchDirtyAtom, researchDraftAtom, researchServerAtom } from "../stores/research-edit"
+import type { ResearchVersion } from "../schemas/research-version"
+import { dirtyAtom, researchDraftAtom, researchServerAtom, versionsDraftAtom, versionsServerAtom } from "../stores/research-edit"
 import { FOOTER_HEIGHT, HEADER_HEIGHT, SUBSECTION_GAP } from "../theme"
 import { RESEARCH_SECTION_IDS } from "../utils/curation"
 
@@ -32,10 +34,13 @@ export const ResearchEditPage = () => {
   const { data: curationData } = useCurationStatus(humId)
   const updateSectionStatus = useUpdateSectionStatus(humId)
   const saveMutation = useSaveResearch(humId)
+  const saveVersionsMutation = useSaveResearchVersions(humId)
   const [server, setServer] = useAtom(researchServerAtom)
   const setDraft = useSetAtom(researchDraftAtom)
   const draft = useAtomValue(researchDraftAtom)
-  const dirty = useAtomValue(researchDirtyAtom)
+  const [versionsServer, setVersionsServer] = useAtom(versionsServerAtom)
+  const [versionsDraft, setVersionsDraft] = useAtom(versionsDraftAtom)
+  const dirty = useAtomValue(dirtyAtom)
 
   useEffect(() => {
     if (research) {
@@ -44,10 +49,19 @@ export const ResearchEditPage = () => {
     }
   }, [research, setServer, setDraft])
 
+  useEffect(() => {
+    if (versions) {
+      setVersionsServer(versions)
+      setVersionsDraft(structuredClone(versions))
+    }
+  }, [versions, setVersionsServer, setVersionsDraft])
+
   useEffect(() => () => {
     setServer(null)
     setDraft(null)
-  }, [setServer, setDraft])
+    setVersionsServer([])
+    setVersionsDraft([])
+  }, [setServer, setDraft, setVersionsServer, setVersionsDraft])
 
   // Navigation guard: in-app navigation (TanStack Router)
   useBlocker({
@@ -78,10 +92,25 @@ export const ResearchEditPage = () => {
         setDraft(structuredClone(saved))
       },
     })
+    if (versionsDraft.length > 0) {
+      saveVersionsMutation.mutate(versionsDraft, {
+        onSuccess: (saved) => {
+          setVersionsServer(saved)
+          setVersionsDraft(structuredClone(saved))
+        },
+      })
+    }
   }
 
   const handleDiscardChanges = () => {
     if (server) setDraft(structuredClone(server))
+    setVersionsDraft(structuredClone(versionsServer))
+  }
+
+  const handleVersionChange = (updated: ResearchVersion) => {
+    setVersionsDraft((prev) =>
+      prev.map((v) => v.humVersionId === updated.humVersionId ? updated : v),
+    )
   }
 
   const handleToggleSection = (sectionId: string) => {
@@ -135,13 +164,14 @@ export const ResearchEditPage = () => {
             <Box sx={{ pb: SUBSECTION_GAP }}>
               <BasicInfoSection
                 research={research}
-                versions={versions ?? []}
+                versions={versionsDraft}
                 curationStatus={curationData?.status ?? "uncurated"}
                 dirty={dirty}
-                saving={saveMutation.isPending}
+                saving={saveMutation.isPending || saveVersionsMutation.isPending}
                 onSave={handleSave}
                 onDiscardChanges={handleDiscardChanges}
                 onSetAllSections={handleSetAllSections}
+                onVersionChange={handleVersionChange}
               />
             </Box>
           )}

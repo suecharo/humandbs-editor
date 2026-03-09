@@ -14,6 +14,7 @@ import TableCell from "@mui/material/TableCell"
 import TableContainer from "@mui/material/TableContainer"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
+import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 import { Fragment, useState } from "react"
 
@@ -34,6 +35,7 @@ interface BasicInfoSectionProps {
   onSave: () => void
   onDiscardChanges: () => void
   onSetAllSections: (status: SectionCurationStatus) => void
+  onVersionChange: (updated: ResearchVersion) => void
 }
 
 export const BasicInfoSection = ({
@@ -45,6 +47,7 @@ export const BasicInfoSection = ({
   onSave,
   onDiscardChanges,
   onSetAllSections,
+  onVersionChange,
 }: BasicInfoSectionProps) => {
   const [expandedVersion, setExpandedVersion] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<"save" | "discard" | "uncurated" | "curated" | null>(null)
@@ -167,6 +170,7 @@ export const BasicInfoSection = ({
           versions={versions}
           expandedVersion={expandedVersion}
           onToggleExpand={handleToggleExpand}
+          onVersionChange={onVersionChange}
         />
       </Box>
     </Paper>
@@ -209,10 +213,11 @@ const getReleaseNoteSummary = (v: ResearchVersion): string => {
     : text
 }
 
-const ReleasesTable = ({ versions, expandedVersion, onToggleExpand }: {
+const ReleasesTable = ({ versions, expandedVersion, onToggleExpand, onVersionChange }: {
   versions: ResearchVersion[]
   expandedVersion: string | null
   onToggleExpand: (versionId: string) => void
+  onVersionChange: (updated: ResearchVersion) => void
 }) => (
   <TableContainer>
     <Table size="small">
@@ -266,46 +271,68 @@ const ReleasesTable = ({ versions, expandedVersion, onToggleExpand }: {
                   sx={{ py: 0, ...(isExpanded ? {} : { borderBottom: 0 }) }}
                 >
                   <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                    <Box sx={{ py: 1, px: 2 }}>
-                      <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
-                        Release Note
-                      </Typography>
-                      {v.releaseNote.ja?.text || v.releaseNote.en?.text ? (
-                        <Box sx={{ mb: 1 }}>
-                          {v.releaseNote.ja?.text ? (
-                            <Typography variant="body2" color="text.secondary">
-                              JA: {v.releaseNote.ja.text}
-                            </Typography>
-                          ) : null}
-                          {v.releaseNote.en?.text ? (
-                            <Typography variant="body2" color="text.secondary">
-                              EN: {v.releaseNote.en.text}
-                            </Typography>
-                          ) : null}
-                        </Box>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                          -
+                    <Box
+                      sx={{ py: 1.5, px: 2, display: "flex", flexDirection: "column", gap: 1.5 }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <TextField
+                        label="Release Date"
+                        size="small"
+                        value={v.versionReleaseDate}
+                        onChange={(e) => onVersionChange({
+                          ...v,
+                          versionReleaseDate: e.target.value,
+                        })}
+                        sx={{ maxWidth: 200 }}
+                      />
+                      <TextField
+                        label="Release Note (JA)"
+                        size="small"
+                        multiline
+                        minRows={2}
+                        value={v.releaseNote.ja?.text ?? ""}
+                        onChange={(e) => onVersionChange({
+                          ...v,
+                          releaseNote: {
+                            ...v.releaseNote,
+                            ja: { ...v.releaseNote.ja, text: e.target.value },
+                          },
+                        })}
+                      />
+                      <TextField
+                        label="Release Note (EN)"
+                        size="small"
+                        multiline
+                        minRows={2}
+                        value={v.releaseNote.en?.text ?? ""}
+                        onChange={(e) => onVersionChange({
+                          ...v,
+                          releaseNote: {
+                            ...v.releaseNote,
+                            en: { ...v.releaseNote.en, text: e.target.value },
+                          },
+                        })}
+                      />
+                      <Box>
+                        <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+                          Datasets
                         </Typography>
-                      )}
-                      <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
-                        Datasets
-                      </Typography>
-                      {v.datasets.length > 0 ? (
-                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                          {v.datasets.map((ds) => (
-                            <Chip
-                              key={`${ds.datasetId}-${ds.version}`}
-                              label={`${ds.datasetId} (${ds.version})`}
-                              size="small"
-                              variant="outlined"
-                              sx={{ fontFamily: "monospace" }}
-                            />
-                          ))}
-                        </Box>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">-</Typography>
-                      )}
+                        {v.datasets.length > 0 ? (
+                          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                            {v.datasets.map((ds) => (
+                              <Chip
+                                key={`${ds.datasetId}-${ds.version}`}
+                                label={`${ds.datasetId} (${ds.version})`}
+                                size="small"
+                                variant="outlined"
+                                sx={{ fontFamily: "monospace" }}
+                              />
+                            ))}
+                          </Box>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">-</Typography>
+                        )}
+                      </Box>
                     </Box>
                   </Collapse>
                 </TableCell>
