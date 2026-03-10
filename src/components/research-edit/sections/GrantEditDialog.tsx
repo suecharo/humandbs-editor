@@ -7,9 +7,8 @@ import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
 import TextField from "@mui/material/TextField"
+import equal from "fast-deep-equal"
 
-import { useDialogDraft } from "@/hooks/use-dialog-draft"
-import { createDefaultGrant } from "@/schemas/defaults"
 import type { Grant } from "@/schemas/research"
 import { DIALOG_PADDING, DIALOG_TITLE_SX, SUBSECTION_GAP } from "@/theme"
 
@@ -17,73 +16,79 @@ import { BilingualTextField } from "../fields/BilingualTextField"
 
 interface GrantEditDialogProps {
   open: boolean
-  grant: Grant | null
-  onSave: (grant: Grant) => void
-  onCancel: () => void
+  grant: Grant
+  serverGrant?: Grant | undefined
+  onChange: (grant: Grant) => void
+  onClose: () => void
 }
 
 export const GrantEditDialog = ({
   open,
   grant,
-  onSave,
-  onCancel,
-}: GrantEditDialogProps) => {
-  const [draft, setDraft] = useDialogDraft(
-    open,
-    () => grant ? structuredClone(grant) : createDefaultGrant(),
-  )
+  serverGrant,
+  onChange,
+  onClose,
+}: GrantEditDialogProps) => (
+  <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <DialogTitle sx={DIALOG_TITLE_SX}>科研費/助成金を編集</DialogTitle>
+    <DialogContent dividers sx={{ p: DIALOG_PADDING }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP }}>
+        <BilingualTextField
+          label="タイトル"
+          value={grant.title}
+          onChange={(title) => onChange({ ...grant, title })}
+          modified={serverGrant ? {
+            ja: grant.title.ja !== serverGrant.title.ja,
+            en: grant.title.en !== serverGrant.title.en,
+          } : undefined}
+        />
+        <BilingualTextField
+          label="助成金名"
+          value={grant.agency.name}
+          onChange={(name) => onChange({ ...grant, agency: { name } })}
+          modified={serverGrant ? {
+            ja: grant.agency.name.ja !== serverGrant.agency.name.ja,
+            en: grant.agency.name.en !== serverGrant.agency.name.en,
+          } : undefined}
+        />
+        <Autocomplete
+          multiple
+          freeSolo
+          options={[]}
+          value={grant.id}
+          onChange={(_e, value) =>
+            onChange({
+              ...grant,
+              id: value.map((v) => v.trim()).filter(Boolean),
+            })
+          }
+          renderTags={(value, getTagProps) =>
+            value.map((id, index) => {
+              const { key, ...tagProps } = getTagProps({ index })
 
-  const isNew = grant === null
-
-  return (
-    <Dialog open={open} onClose={onCancel} maxWidth="md" fullWidth>
-      <DialogTitle sx={DIALOG_TITLE_SX}>{isNew ? "科研費/助成金を追加" : "科研費/助成金を編集"}</DialogTitle>
-      <DialogContent dividers sx={{ p: DIALOG_PADDING }}>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP }}>
-          <BilingualTextField
-            label="タイトル"
-            value={draft.title}
-            onChange={(title) => setDraft((prev) => ({ ...prev, title }))}
-          />
-          <BilingualTextField
-            label="助成金名"
-            value={draft.agency.name}
-            onChange={(name) => setDraft((prev) => ({ ...prev, agency: { name } }))}
-          />
-          <Autocomplete
-            multiple
-            freeSolo
-            options={[]}
-            value={draft.id}
-            onChange={(_e, value) =>
-              setDraft((prev) => ({
-                ...prev,
-                id: value.map((v) => v.trim()).filter(Boolean),
-              }))
-            }
-            renderTags={(value, getTagProps) =>
-              value.map((id, index) => {
-                const { key, ...tagProps } = getTagProps({ index })
-
-                return <Chip key={key} label={id} size="small" sx={{ fontFamily: "monospace" }} {...tagProps} />
-              })
-            }
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="課題番号"
-                placeholder="Enter で追加"
-              />
-            )}
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions sx={{ p: DIALOG_PADDING }}>
-        <Button variant="outlined" onClick={onCancel}>キャンセル</Button>
-        <Button onClick={() => onSave(draft)} variant="contained">
-          {isNew ? "追加" : "保存"}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  )
-}
+              return <Chip key={key} label={id} size="small" sx={{ fontFamily: "monospace" }} {...tagProps} />
+            })
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="課題番号"
+              placeholder="Enter で追加"
+            />
+          )}
+        />
+      </Box>
+    </DialogContent>
+    <DialogActions sx={{ p: DIALOG_PADDING, justifyContent: "space-between" }}>
+      <Button
+        variant="outlined"
+        color="secondary"
+        disabled={!serverGrant || equal(grant, serverGrant)}
+        onClick={() => { if (serverGrant) onChange(serverGrant) }}
+      >
+        変更を破棄
+      </Button>
+      <Button variant="outlined" onClick={onClose}>閉じる</Button>
+    </DialogActions>
+  </Dialog>
+)

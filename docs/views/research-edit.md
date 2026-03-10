@@ -74,7 +74,7 @@ fullScreenLayout (AppHeader + full-height main、footer なし) を使用。
 |---|---|---|---|---|
 | タイトル | `TitleSection` | `title` | title (ja/en) | editable |
 | サマリー | `SummarySection` | `summary` | aims, methods, targets | editable |
-| データセット一覧 | `DatasetsSection` | `datasets` | dataset 一覧 | read-only |
+| データセット一覧 | `DatasetsSection` | `datasets` | dataset 一覧 + CRUD 操作 | editable ([詳細](dataset-edit.md)) |
 | データ提供者 | `DataProviderSection` | `dataProvider` | Person 配列、カード+ダイアログ編集、ORCID 検索 | editable, 行追加/削除/並替 |
 | 研究プロジェクト | `ResearchProjectSection` | `researchProject` | ResearchProject 配列、カード+ダイアログ編集 | editable, 行追加/削除/並替 |
 | 助成金 | `GrantSection` | `grant` | Grant 配列、カード+ダイアログ編集 | editable, 行追加/削除/並替 |

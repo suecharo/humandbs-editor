@@ -3,7 +3,12 @@ import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 
 import type { BilingualText } from "@/schemas/common"
-import { FIELD_GROUP_GAP, FORM_FIELD_MAX_WIDTH, FORM_LABEL_SX } from "@/theme"
+import { FIELD_GROUP_GAP, FORM_FIELD_MAX_WIDTH, FORM_LABEL_SX, MODIFIED_FIELD_SX } from "@/theme"
+
+export interface LangModified {
+  ja?: boolean
+  en?: boolean
+}
 
 interface BilingualTextFieldProps {
   label: string
@@ -11,6 +16,7 @@ interface BilingualTextFieldProps {
   onChange: (value: BilingualText) => void
   readOnly?: boolean
   multiline?: boolean
+  modified?: LangModified | undefined
 }
 
 export const BilingualTextField = ({
@@ -19,6 +25,7 @@ export const BilingualTextField = ({
   onChange,
   readOnly = false,
   multiline = false,
+  modified,
 }: BilingualTextFieldProps) => (
   <Box>
     <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: 1 }}>
@@ -33,6 +40,7 @@ export const BilingualTextField = ({
         minRows={multiline ? 2 : undefined}
         slotProps={{ input: { readOnly } }}
         fullWidth
+        sx={modified?.ja ? MODIFIED_FIELD_SX : undefined}
       />
       <TextField
         label="EN"
@@ -42,6 +50,7 @@ export const BilingualTextField = ({
         minRows={multiline ? 2 : undefined}
         slotProps={{ input: { readOnly } }}
         fullWidth
+        sx={modified?.en ? MODIFIED_FIELD_SX : undefined}
       />
     </Box>
   </Box>

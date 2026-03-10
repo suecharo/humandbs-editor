@@ -16,7 +16,9 @@ import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
-import { Fragment, useState } from "react"
+import equal from "fast-deep-equal"
+import { useAtomValue } from "jotai"
+import { Fragment, useMemo, useState } from "react"
 
 import { ConfirmDialog } from "@/components/common/ConfirmDialog"
 import { CurationStatusChip } from "@/components/CurationStatusChip"
@@ -24,7 +26,8 @@ import { SectionHeader } from "@/components/SectionHeader"
 import type { CurationStatus, SectionCurationStatus } from "@/schemas/editor-state"
 import type { Research } from "@/schemas/research"
 import type { ResearchVersion } from "@/schemas/research-version"
-import { BUTTON_MIN_WIDTH_ACTION, FORM_LABEL_SX, MONOSPACE_ID_SX, SECTION_GAP, SUBSECTION_GAP } from "@/theme"
+import { versionsServerAtom } from "@/stores/research-edit"
+import { BUTTON_MIN_WIDTH_ACTION, FORM_LABEL_SX, MODIFIED_FIELD_BG, MODIFIED_FIELD_SX, MONOSPACE_ID_SX, SECTION_GAP, SUBSECTION_GAP } from "@/theme"
 
 interface BasicInfoSectionProps {
   research: Research
@@ -51,6 +54,17 @@ export const BasicInfoSection = ({
 }: BasicInfoSectionProps) => {
   const [expandedVersion, setExpandedVersion] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<"save" | "discard" | "uncurated" | "curated" | null>(null)
+  const versionsServer = useAtomValue(versionsServerAtom)
+
+  const modifiedVersionIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const draftV of versions) {
+      const serverV = versionsServer.find((s) => s.humVersionId === draftV.humVersionId)
+      if (!serverV || !equal(serverV, draftV)) ids.add(draftV.humVersionId)
+    }
+
+    return ids
+  }, [versions, versionsServer])
 
   const handleToggleExpand = (versionId: string) => {
     setExpandedVersion((prev) => (prev === versionId ? null : versionId))
@@ -164,13 +178,15 @@ export const BasicInfoSection = ({
       {/* Releases */}
       <Box>
         <Box sx={{ mb: SUBSECTION_GAP }}>
-          <SectionHeader title="Releases" size="small" />
+          <SectionHeader title="Releases" size="small" modified={modifiedVersionIds.size > 0} />
         </Box>
         <ReleasesTable
           versions={versions}
+          versionsServer={versionsServer}
           expandedVersion={expandedVersion}
           onToggleExpand={handleToggleExpand}
           onVersionChange={onVersionChange}
+          modifiedVersionIds={modifiedVersionIds}
         />
       </Box>
     </Paper>
@@ -208,16 +224,19 @@ const RELEASE_NOTE_MAX_LENGTH = 60
 const getReleaseNoteSummary = (v: ResearchVersion): string => {
   const text = v.releaseNote.ja?.text || v.releaseNote.en?.text
   if (!text) return "-"
+
   return text.length > RELEASE_NOTE_MAX_LENGTH
     ? `${text.slice(0, RELEASE_NOTE_MAX_LENGTH)}…`
     : text
 }
 
-const ReleasesTable = ({ versions, expandedVersion, onToggleExpand, onVersionChange }: {
+const ReleasesTable = ({ versions, versionsServer, expandedVersion, onToggleExpand, onVersionChange, modifiedVersionIds }: {
   versions: ResearchVersion[]
+  versionsServer: ResearchVersion[]
   expandedVersion: string | null
   onToggleExpand: (versionId: string) => void
   onVersionChange: (updated: ResearchVersion) => void
+  modifiedVersionIds: ReadonlySet<string>
 }) => (
   <TableContainer>
     <Table size="small">
@@ -233,6 +252,8 @@ const ReleasesTable = ({ versions, expandedVersion, onToggleExpand, onVersionCha
       <TableBody>
         {versions.map((v) => {
           const isExpanded = expandedVersion === v.humVersionId
+          const isModified = modifiedVersionIds.has(v.humVersionId)
+          const serverV = versionsServer.find((s) => s.humVersionId === v.humVersionId)
 
           return (
             <Fragment key={v.humVersionId}>
@@ -241,6 +262,7 @@ const ReleasesTable = ({ versions, expandedVersion, onToggleExpand, onVersionCha
                 onClick={() => onToggleExpand(v.humVersionId)}
                 sx={{
                   cursor: "pointer",
+                  ...(isModified && { bgcolor: MODIFIED_FIELD_BG }),
                   "& > .MuiTableCell-root": {
                     py: 0.625,
                     ...(isExpanded && { borderBottomColor: "transparent" }),
@@ -283,7 +305,7 @@ const ReleasesTable = ({ versions, expandedVersion, onToggleExpand, onVersionCha
                           ...v,
                           versionReleaseDate: e.target.value,
                         })}
-                        sx={{ maxWidth: 200 }}
+                        sx={{ maxWidth: 200, ...(serverV && serverV.versionReleaseDate !== v.versionReleaseDate ? MODIFIED_FIELD_SX : {}) }}
                       />
                       <TextField
                         label="Release Note (JA)"
@@ -295,9 +317,10 @@ const ReleasesTable = ({ versions, expandedVersion, onToggleExpand, onVersionCha
                           ...v,
                           releaseNote: {
                             ...v.releaseNote,
-                            ja: { ...v.releaseNote.ja, text: e.target.value },
+                            ja: { rawHtml: v.releaseNote.ja?.rawHtml ?? "", text: e.target.value },
                           },
                         })}
+                        sx={serverV && serverV.releaseNote.ja?.text !== v.releaseNote.ja?.text ? MODIFIED_FIELD_SX : undefined}
                       />
                       <TextField
                         label="Release Note (EN)"
@@ -309,9 +332,10 @@ const ReleasesTable = ({ versions, expandedVersion, onToggleExpand, onVersionCha
                           ...v,
                           releaseNote: {
                             ...v.releaseNote,
-                            en: { ...v.releaseNote.en, text: e.target.value },
+                            en: { rawHtml: v.releaseNote.en?.rawHtml ?? "", text: e.target.value },
                           },
                         })}
+                        sx={serverV && serverV.releaseNote.en?.text !== v.releaseNote.en?.text ? MODIFIED_FIELD_SX : undefined}
                       />
                       <Box>
                         <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>

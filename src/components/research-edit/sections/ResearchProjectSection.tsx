@@ -1,5 +1,6 @@
 import { memo, useCallback } from "react"
 
+import { createDefaultResearchProject } from "@/schemas/defaults"
 import type { SectionCurationStatus } from "@/schemas/editor-state"
 import type { Research, ResearchProject } from "@/schemas/research"
 
@@ -25,6 +26,7 @@ export const ResearchProjectSection = memo(({ draft, onChange, sectionStatus, on
       title="研究プロジェクト"
       items={draft.researchProject}
       onItemsChange={handleItemsChange}
+      createDefault={createDefaultResearchProject}
       sectionStatus={sectionStatus}
       onToggleStatus={onToggleStatus}
       itemLabel="Project"
@@ -32,8 +34,8 @@ export const ResearchProjectSection = memo(({ draft, onChange, sectionStatus, on
       renderCard={(item, actions) => (
         <ResearchProjectCard project={item} actions={actions} />
       )}
-      renderEditDialog={({ open, item, onSave, onCancel }) => (
-        <ResearchProjectEditDialog open={open} project={item} onSave={onSave} onCancel={onCancel} />
+      renderEditDialog={({ open, item, onChange: onItemChange, onClose }) => (
+        <ResearchProjectEditDialog open={open} project={item} onChange={onItemChange} onClose={onClose} />
       )}
     />
   )

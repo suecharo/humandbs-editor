@@ -1,12 +1,14 @@
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 
-import { ALPHA_BG_WARNING_SUBTLE } from "@/theme"
+import { ALPHA_BG_WARNING_SUBTLE, MODIFIED_TEXT_SX } from "@/theme"
 
 export interface BilingualRow {
   label: string
   ja: string | null | undefined
   en: string | null | undefined
+  jaModified?: boolean | undefined
+  enModified?: boolean | undefined
 }
 
 const EmptyLine = () => (
@@ -24,7 +26,7 @@ const EmptyLine = () => (
   </Typography>
 )
 
-const BilingualField = ({ label, ja, en }: BilingualRow) => {
+const BilingualField = ({ label, ja, en, jaModified, enModified }: BilingualRow) => {
   const jaText = ja?.trim() || null
   const enText = en?.trim() || null
 
@@ -40,10 +42,10 @@ const BilingualField = ({ label, ja, en }: BilingualRow) => {
       </Typography>
       <Box sx={{ pl: 0.5 }}>
         {jaText
-          ? <Typography variant="body2">{jaText}</Typography>
+          ? <Typography variant="body2" sx={jaModified ? MODIFIED_TEXT_SX : undefined}>{jaText}</Typography>
           : enText && <EmptyLine />}
         {enText
-          ? <Typography variant="body2">{enText}</Typography>
+          ? <Typography variant="body2" sx={enModified ? MODIFIED_TEXT_SX : undefined}>{enText}</Typography>
           : jaText && <EmptyLine />}
       </Box>
     </Box>

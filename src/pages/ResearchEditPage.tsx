@@ -177,11 +177,6 @@ export const ResearchEditPage = () => {
           )}
         </Container>
       </Box>
-      {dirty && (
-        <Alert severity="info" sx={{ borderRadius: 0 }}>
-          Unsaved changes
-        </Alert>
-      )}
       <Box sx={{ position: "sticky", top: 0, height: `calc(100vh - ${HEADER_HEIGHT} - ${FOOTER_HEIGHT})` }}>
         <SplitLayout
           left={

@@ -26,3 +26,27 @@ export const dirtyAtom = atom((get) => {
 
 /** @deprecated Use dirtyAtom instead */
 export const researchDirtyAtom = dirtyAtom
+
+export const computeModifiedPaths = (server: Research, draft: Research): Set<string> => {
+  const paths = new Set<string>()
+
+  // Title
+  if (server.title.ja !== draft.title.ja) paths.add("title.ja")
+  if (server.title.en !== draft.title.en) paths.add("title.en")
+
+  // Summary
+  for (const field of ["aims", "methods", "targets"] as const) {
+    if (server.summary[field].ja?.text !== draft.summary[field].ja?.text) paths.add(`summary.${field}.ja`)
+    if (server.summary[field].en?.text !== draft.summary[field].en?.text) paths.add(`summary.${field}.en`)
+  }
+  if (!equal(server.summary.url, draft.summary.url)) paths.add("summary.url")
+
+  // Array sections
+  if (!equal(server.dataProvider, draft.dataProvider)) paths.add("dataProvider")
+  if (!equal(server.researchProject, draft.researchProject)) paths.add("researchProject")
+  if (!equal(server.grant, draft.grant)) paths.add("grant")
+  if (!equal(server.relatedPublication, draft.relatedPublication)) paths.add("relatedPublication")
+  if (!equal(server.controlledAccessUser, draft.controlledAccessUser)) paths.add("controlledAccessUser")
+
+  return paths
+}

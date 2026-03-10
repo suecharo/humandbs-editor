@@ -154,12 +154,13 @@ humandbs と同じ Keycloak インスタンスを OIDC で利用する。
 
 ### editing lock
 
-同じ research/dataset を複数ユーザーが同時に編集することを防ぐ。
+同じ research を複数ユーザーが同時に編集することを防ぐ。
 
 - 編集画面を開くときに lock を取得 (`editingBy`, `editingAt` をセット)
 - 保存または画面離脱時に lock を解放
 - タイムアウト (30 分) を超えた lock は期限切れとして無視
 - 他のユーザーが lock 中の entry を開こうとした場合、「{editingByName} が編集中」と警告を表示し、強制的に開く (lock 奪取) ことも可能
+- Research lock が配下の Dataset 編集も含む。Dataset 個別の lock は使わない
 
 ## 画面構成
 
@@ -167,7 +168,7 @@ humandbs と同じ Keycloak インスタンスを OIDC で利用する。
 |---|---|---|
 | 一覧画面 | `/` | [research-list](views/research-list.md) |
 | research 編集画面 | `/research/:humId` | [research-edit](views/research-edit.md) |
-| dataset 編集画面 | `/dataset/:datasetId` | dataset-edit (未作成) |
+| dataset 編集 | Research 編集画面内ダイアログ | [dataset-edit](views/dataset-edit.md) |
 
 ### 編集ワークフロー
 

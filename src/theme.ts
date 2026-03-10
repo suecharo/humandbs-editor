@@ -69,6 +69,20 @@ export const HOVER_ACCENT_SHADOW = `inset 3px 0 0 0 ${PRIMARY}`
 export const SELECTED_ACCENT_SHADOW = `inset 4px 0 0 0 ${SECONDARY}`
 export const MODIFIED_ACCENT_SHADOW = `inset 3px 0 0 0 ${SUCCESS}`
 
+// Modification highlight (orange)
+
+export const MODIFIED_INDICATOR_COLOR = "#E67E22"
+export const MODIFIED_FIELD_BG = "rgba(230, 126, 34, 0.08)"
+export const MODIFIED_FIELD_SX = {
+  "& .MuiOutlinedInput-root": { bgcolor: MODIFIED_FIELD_BG },
+} as const
+export const MODIFIED_TEXT_SX = {
+  bgcolor: MODIFIED_FIELD_BG,
+  borderRadius: 0.5,
+  px: 0.5,
+  display: "inline-block",
+} as const
+
 // Alpha backgrounds
 
 export const ALPHA_BG_PRIMARY_SUBTLE = "rgba(45, 58, 150, 0.06)"

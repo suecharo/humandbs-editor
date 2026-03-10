@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box"
+import Chip from "@mui/material/Chip"
 import Typography from "@mui/material/Typography"
 import type { ElementType, ReactNode } from "react"
 
@@ -6,15 +7,17 @@ import {
   HEADING_BORDER_LARGE,
   HEADING_BORDER_SMALL,
   HEADING_PL,
+  MODIFIED_INDICATOR_COLOR,
 } from "../theme"
 
-export const SectionHeader = ({ title, subtitle, action, component = "h2", size = "default", color }: {
+export const SectionHeader = ({ title, subtitle, action, component = "h2", size = "default", color, modified = false }: {
   title: string
   subtitle?: string | undefined
   action?: ReactNode | undefined
   component?: ElementType | undefined
   size?: "default" | "small" | undefined
   color?: string | undefined
+  modified?: boolean | undefined
 }) => {
   const isSmall = size === "small"
   const resolvedColor = color ?? (isSmall ? "secondary.main" : "primary.main")
@@ -47,6 +50,19 @@ export const SectionHeader = ({ title, subtitle, action, component = "h2", size 
             </Typography>
           ) : null}
         </Typography>
+        {modified ? (
+          <Chip
+            label="Modified"
+            size="small"
+            sx={{
+              height: 20,
+              fontSize: "0.6875rem",
+              fontWeight: 600,
+              bgcolor: MODIFIED_INDICATOR_COLOR,
+              color: "#fff",
+            }}
+          />
+        ) : null}
       </Box>
       {action ?? null}
     </Box>

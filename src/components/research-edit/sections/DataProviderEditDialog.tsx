@@ -5,100 +5,109 @@ import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
 import TextField from "@mui/material/TextField"
+import equal from "fast-deep-equal"
 
 import { OrcidAutocomplete } from "@/components/common/OrcidAutocomplete"
-import { useDialogDraft } from "@/hooks/use-dialog-draft"
 import type { OrcidSearchResult } from "@/hooks/use-orcid-search"
-import { createDefaultPerson } from "@/schemas/defaults"
 import type { Person } from "@/schemas/research"
-import { DIALOG_PADDING, DIALOG_TITLE_SX, SUBSECTION_GAP } from "@/theme"
+import { DIALOG_PADDING, DIALOG_TITLE_SX, MODIFIED_FIELD_SX, SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextValueField } from "../fields/BilingualTextValueField"
 
 interface DataProviderEditDialogProps {
   open: boolean
-  person: Person | null
-  onSave: (person: Person) => void
-  onCancel: () => void
+  person: Person
+  serverPerson?: Person | undefined
+  onChange: (person: Person) => void
+  onClose: () => void
 }
 
 export const DataProviderEditDialog = ({
   open,
   person,
-  onSave,
-  onCancel,
+  serverPerson,
+  onChange,
+  onClose,
 }: DataProviderEditDialogProps) => {
-  const [draft, setDraft] = useDialogDraft(
-    open,
-    () => person ? structuredClone(person) : createDefaultPerson(),
-  )
-
-  const isNew = person === null
-
   const handleOrcidSelect = (result: OrcidSearchResult) => {
     const enName = [result.givenNames, result.familyNames].filter(Boolean).join(" ")
     const instName = result.institutionNames[0] ?? ""
 
-    setDraft((prev) => ({
-      ...prev,
+    onChange({
+      ...person,
       name: {
-        ...prev.name,
-        en: { text: enName, rawHtml: prev.name.en?.rawHtml ?? "" },
+        ...person.name,
+        en: { text: enName, rawHtml: person.name.en?.rawHtml ?? "" },
       },
       orcid: result.orcidId,
       organization: {
         name: {
-          ja: prev.organization?.name?.ja ?? null,
-          en: { text: instName, rawHtml: prev.organization?.name?.en?.rawHtml ?? "" },
+          ja: person.organization?.name?.ja ?? null,
+          en: { text: instName, rawHtml: person.organization?.name?.en?.rawHtml ?? "" },
         },
-        address: prev.organization?.address ?? null,
+        address: person.organization?.address ?? null,
       },
-    }))
+    })
   }
 
   return (
-    <Dialog open={open} onClose={onCancel} maxWidth="md" fullWidth>
-      <DialogTitle sx={DIALOG_TITLE_SX}>{isNew ? "提供者を追加" : "提供者を編集"}</DialogTitle>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle sx={DIALOG_TITLE_SX}>提供者を編集</DialogTitle>
       <DialogContent dividers sx={{ p: DIALOG_PADDING }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP }}>
           <OrcidAutocomplete onSelect={handleOrcidSelect} />
           <BilingualTextValueField
             label="研究代表者"
-            value={draft.name}
-            onChange={(name) => setDraft((prev) => ({ ...prev, name }))}
+            value={person.name}
+            onChange={(name) => onChange({ ...person, name })}
             multiline={false}
+            modified={serverPerson ? {
+              ja: person.name.ja?.text !== serverPerson.name.ja?.text,
+              en: person.name.en?.text !== serverPerson.name.en?.text,
+            } : undefined}
           />
           <TextField
             label="メールアドレス"
-            value={draft.email ?? ""}
-            onChange={(e) => setDraft((prev) => ({ ...prev, email: e.target.value || null }))}
+            value={person.email ?? ""}
+            onChange={(e) => onChange({ ...person, email: e.target.value || null })}
             fullWidth
+            sx={serverPerson && person.email !== serverPerson.email ? MODIFIED_FIELD_SX : undefined}
           />
           <TextField
             label="ORCID"
-            value={draft.orcid ?? ""}
-            onChange={(e) => setDraft((prev) => ({ ...prev, orcid: e.target.value || null }))}
+            value={person.orcid ?? ""}
+            onChange={(e) => onChange({ ...person, orcid: e.target.value || null })}
             fullWidth
+            sx={serverPerson && person.orcid !== serverPerson.orcid ? MODIFIED_FIELD_SX : undefined}
           />
-          {draft.organization && (
+          {person.organization && (
             <BilingualTextValueField
               label="所属機関"
-              value={draft.organization.name}
+              value={person.organization.name}
               onChange={(name) => {
-                const { organization } = draft
+                const { organization } = person
                 if (!organization) return
-                setDraft((prev) => ({ ...prev, organization: { ...organization, name } }))
+                onChange({ ...person, organization: { ...organization, name } })
               }}
               multiline={false}
+              modified={serverPerson ? {
+                ja: person.organization.name.ja?.text !== serverPerson.organization?.name.ja?.text,
+                en: person.organization.name.en?.text !== serverPerson.organization?.name.en?.text,
+              } : undefined}
             />
           )}
         </Box>
       </DialogContent>
-      <DialogActions sx={{ p: DIALOG_PADDING }}>
-        <Button variant="outlined" onClick={onCancel}>キャンセル</Button>
-        <Button onClick={() => onSave(draft)} variant="contained">
-          {isNew ? "追加" : "保存"}
+      <DialogActions sx={{ p: DIALOG_PADDING, justifyContent: "space-between" }}>
+        <Button
+          variant="outlined"
+          color="secondary"
+          disabled={!serverPerson || equal(person, serverPerson)}
+          onClick={() => { if (serverPerson) onChange(serverPerson) }}
+        >
+          変更を破棄
         </Button>
+        <Button variant="outlined" onClick={onClose}>閉じる</Button>
       </DialogActions>
     </Dialog>
   )

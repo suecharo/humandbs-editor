@@ -19,16 +19,19 @@ export interface CardActions {
 
 export interface EditDialogRenderProps<T> {
   open: boolean
-  item: T | null
-  onSave: (item: T) => void
-  onCancel: () => void
+  item: T
+  serverItem: T | undefined
+  onChange: (item: T) => void
+  onClose: () => void
 }
 
 export interface ItemCardListProps<T> {
   items: T[]
+  serverItems?: T[] | undefined
   getKey: (item: T) => string | number
   onItemsChange: (items: T[]) => void
-  renderCard: (item: T, actions: CardActions) => ReactNode
+  createDefault: () => T
+  renderCard: (item: T, actions: CardActions, serverItem: T | undefined) => ReactNode
   renderEditDialog: (props: EditDialogRenderProps<T>) => ReactNode
   itemLabel: string
   confirmMessage: (item: T) => string
@@ -37,8 +40,10 @@ export interface ItemCardListProps<T> {
 // eslint-disable-next-line @stylistic/comma-dangle -- trailing comma required to disambiguate TSX generic from JSX
 export const ItemCardList = <T,>({
   items,
+  serverItems,
   getKey,
   onItemsChange,
+  createDefault,
   renderCard,
   renderEditDialog,
   itemLabel,
@@ -48,16 +53,13 @@ export const ItemCardList = <T,>({
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null)
 
   const handleAdd = () => {
-    setEditingIndex(-1)
+    onItemsChange([...items, createDefault()])
+    setEditingIndex(items.length)
   }
 
-  const handleSave = (item: T) => {
-    if (editingIndex === -1) {
-      onItemsChange([...items, item])
-    } else if (editingIndex !== null) {
-      onItemsChange(items.map((s, i) => (i === editingIndex ? item : s)))
-    }
-    setEditingIndex(null)
+  const handleChange = (item: T) => {
+    if (editingIndex === null || editingIndex < 0) return
+    onItemsChange(items.map((s, i) => (i === editingIndex ? item : s)))
   }
 
   const handleRemoveConfirm = () => {
@@ -68,9 +70,7 @@ export const ItemCardList = <T,>({
   }
 
   const handleMoveUp = (index: number) => {
-    if (index <= 0) {
-      return
-    }
+    if (index <= 0) return
 
     const next = [...items]
     const a = next[index - 1]
@@ -82,9 +82,7 @@ export const ItemCardList = <T,>({
   }
 
   const handleMoveDown = (index: number) => {
-    if (index >= items.length - 1) {
-      return
-    }
+    if (index >= items.length - 1) return
 
     const next = [...items]
     const a = next[index]
@@ -95,9 +93,12 @@ export const ItemCardList = <T,>({
     onItemsChange(next)
   }
 
-  const dialogItem = editingIndex !== null && editingIndex >= 0
-    ? items[editingIndex] ?? null
-    : null
+  const editingItem = editingIndex !== null && editingIndex >= 0
+    ? items[editingIndex]
+    : undefined
+  const editingServerItem = editingIndex !== null && editingIndex >= 0
+    ? serverItems?.[editingIndex]
+    : undefined
   const deleteTargetItem = deleteTarget !== null ? items[deleteTarget] : undefined
 
   return (
@@ -119,7 +120,7 @@ export const ItemCardList = <T,>({
               isFirst: index === 0,
               isLast: index === items.length - 1,
               index,
-            })}
+            }, serverItems?.[index])}
           </Fragment>
         ))}
 
@@ -130,11 +131,12 @@ export const ItemCardList = <T,>({
         </Box>
       </Stack>
 
-      {renderEditDialog({
-        open: editingIndex !== null,
-        item: dialogItem,
-        onSave: handleSave,
-        onCancel: () => setEditingIndex(null),
+      {editingItem !== undefined && renderEditDialog({
+        open: true,
+        item: editingItem,
+        serverItem: editingServerItem,
+        onChange: handleChange,
+        onClose: () => setEditingIndex(null),
       })}
 
       <ConfirmDialog

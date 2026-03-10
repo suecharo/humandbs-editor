@@ -14,12 +14,15 @@ import { SectionCurationToggle } from "../SectionCurationToggle"
 export interface ItemListSectionProps<T extends object> {
   title: string
   items: T[]
+  serverItems?: T[] | undefined
   onItemsChange: (items: T[]) => void
+  createDefault: () => T
   sectionStatus?: SectionCurationStatus | undefined
   onToggleStatus?: (() => void) | undefined
+  sectionModified?: boolean | undefined
   itemLabel: string
   confirmMessage: (item: T) => string
-  renderCard: (item: T, actions: CardActions) => ReactNode
+  renderCard: (item: T, actions: CardActions, serverItem: T | undefined) => ReactNode
   renderEditDialog: (props: EditDialogRenderProps<T>) => ReactNode
 }
 
@@ -27,9 +30,12 @@ export interface ItemListSectionProps<T extends object> {
 export const ItemListSection = <T extends object,>({
   title,
   items,
+  serverItems,
   onItemsChange,
+  createDefault,
   sectionStatus,
   onToggleStatus,
+  sectionModified,
   itemLabel,
   confirmMessage,
   renderCard,
@@ -43,6 +49,7 @@ export const ItemListSection = <T extends object,>({
         <SectionHeader
           title={title}
           size="small"
+          modified={sectionModified}
           action={sectionStatus !== undefined && onToggleStatus ? (
             <SectionCurationToggle status={sectionStatus} onToggle={onToggleStatus} />
           ) : undefined}
@@ -50,8 +57,10 @@ export const ItemListSection = <T extends object,>({
       </Box>
       <ItemCardList
         items={items}
+        serverItems={serverItems}
         getKey={getKey}
         onItemsChange={onItemsChange}
+        createDefault={createDefault}
         itemLabel={itemLabel}
         confirmMessage={confirmMessage}
         renderCard={renderCard}

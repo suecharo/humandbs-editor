@@ -1,9 +1,10 @@
 import Box from "@mui/material/Box"
-import { useAtom } from "jotai"
+import { useAtom, useAtomValue } from "jotai"
+import { useMemo } from "react"
 
 import type { SectionCurationStatus } from "@/schemas/editor-state"
 import type { ResearchVersion } from "@/schemas/research-version"
-import { researchDraftAtom } from "@/stores/research-edit"
+import { computeModifiedPaths, researchDraftAtom, researchServerAtom } from "@/stores/research-edit"
 import { SECTION_GAP } from "@/theme"
 
 import { ControlledAccessUserSection } from "./sections/ControlledAccessUserSection"
@@ -22,6 +23,13 @@ interface ResearchFormProps {
 
 export const ResearchForm = ({ versions, sectionStatuses, onToggleSection }: ResearchFormProps) => {
   const [draft, setDraft] = useAtom(researchDraftAtom)
+  const server = useAtomValue(researchServerAtom)
+
+  const modifiedPaths = useMemo(() => {
+    if (!server || !draft) return new Set<string>()
+
+    return computeModifiedPaths(server, draft)
+  }, [server, draft])
 
   if (!draft) return null
 
@@ -32,12 +40,14 @@ export const ResearchForm = ({ versions, sectionStatuses, onToggleSection }: Res
         onChange={setDraft}
         sectionStatus={sectionStatuses.title ?? "uncurated"}
         onToggleStatus={() => onToggleSection("title")}
+        modifiedPaths={modifiedPaths}
       />
       <SummarySection
         draft={draft}
         onChange={setDraft}
         sectionStatus={sectionStatuses.summary ?? "uncurated"}
         onToggleStatus={() => onToggleSection("summary")}
+        modifiedPaths={modifiedPaths}
       />
       <DatasetsSection
         versions={versions}
@@ -48,26 +58,35 @@ export const ResearchForm = ({ versions, sectionStatuses, onToggleSection }: Res
       <DataProviderSection
         draft={draft}
         onChange={setDraft}
+        serverProviders={server?.dataProvider}
+        serverProjects={server?.researchProject}
         sectionStatus={sectionStatuses.dataProvider ?? "uncurated"}
         onToggleStatus={() => onToggleSection("dataProvider")}
+        sectionModified={modifiedPaths.has("dataProvider") || modifiedPaths.has("researchProject")}
       />
       <GrantSection
         draft={draft}
         onChange={setDraft}
+        serverItems={server?.grant}
         sectionStatus={sectionStatuses.grant ?? "uncurated"}
         onToggleStatus={() => onToggleSection("grant")}
+        sectionModified={modifiedPaths.has("grant")}
       />
       <PublicationSection
         draft={draft}
         onChange={setDraft}
+        serverItems={server?.relatedPublication}
         sectionStatus={sectionStatuses.publication ?? "uncurated"}
         onToggleStatus={() => onToggleSection("publication")}
+        sectionModified={modifiedPaths.has("relatedPublication")}
       />
       <ControlledAccessUserSection
         draft={draft}
         onChange={setDraft}
+        serverItems={server?.controlledAccessUser}
         sectionStatus={sectionStatuses.controlledAccessUser ?? "uncurated"}
         onToggleStatus={() => onToggleSection("controlledAccessUser")}
+        sectionModified={modifiedPaths.has("controlledAccessUser")}
       />
     </Box>
   )
