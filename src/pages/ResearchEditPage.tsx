@@ -13,7 +13,9 @@ import { AppFooter } from "../components/layout/AppFooter"
 import { SplitLayout } from "../components/layout/SplitLayout"
 import { ResearchForm } from "../components/research-edit/ResearchForm"
 import { BasicInfoSection } from "../components/research-edit/sections/BasicInfoSection"
+import { DatasetsSection } from "../components/research-edit/sections/DatasetsSection"
 import { TabbedPane } from "../components/research-edit/TabbedPane"
+import { PanelSideProvider } from "../contexts/panel-side"
 import { useCurationStatus, useUpdateSectionStatus } from "../hooks/use-curation-status"
 import { useResearch } from "../hooks/use-research"
 import { useResearchVersions } from "../hooks/use-research-versions"
@@ -180,35 +182,55 @@ export const ResearchEditPage = () => {
       <Box sx={{ position: "sticky", top: 0, height: `calc(100vh - ${HEADER_HEIGHT} - ${FOOTER_HEIGHT})` }}>
         <SplitLayout
           left={
-            <TabbedPane
-              prefix="left"
-              form={
-                <ResearchForm
-                  versions={versions ?? []}
-                  sectionStatuses={sectionStatuses}
-                  onToggleSection={handleToggleSection}
-                />
-              }
-              humId={humId}
-              originalUrls={{ ja: research?.url.ja ?? null, en: research?.url.en ?? null }}
-              showOriginalIframe={debugOriginal !== "off"}
-            />
+            <PanelSideProvider side="left">
+              <TabbedPane
+                prefix="left"
+                form={
+                  <ResearchForm
+                    sectionStatuses={sectionStatuses}
+                    onToggleSection={handleToggleSection}
+                  />
+                }
+                datasetSection={draft && (
+                  <DatasetsSection
+                    humId={humId}
+                    versions={versions ?? []}
+                    latestVersionId={draft.latestVersion}
+                    sectionStatus={sectionStatuses.datasets ?? "uncurated"}
+                    onToggleStatus={() => handleToggleSection("datasets")}
+                  />
+                )}
+                humId={humId}
+                originalUrls={{ ja: research?.url.ja ?? null, en: research?.url.en ?? null }}
+                showOriginalIframe={debugOriginal !== "off"}
+              />
+            </PanelSideProvider>
           }
           right={
-            <TabbedPane
-              prefix="right"
-              form={
-                <ResearchForm
-                  versions={versions ?? []}
-                  sectionStatuses={sectionStatuses}
-                  onToggleSection={handleToggleSection}
-                />
-              }
-              humId={humId}
-              originalUrls={{ ja: research?.url.ja ?? null, en: research?.url.en ?? null }}
-              showOriginalIframe={debugOriginal !== "off"}
-              initialTabIndex={1}
-            />
+            <PanelSideProvider side="right">
+              <TabbedPane
+                prefix="right"
+                form={
+                  <ResearchForm
+                    sectionStatuses={sectionStatuses}
+                    onToggleSection={handleToggleSection}
+                  />
+                }
+                datasetSection={draft && (
+                  <DatasetsSection
+                    humId={humId}
+                    versions={versions ?? []}
+                    latestVersionId={draft.latestVersion}
+                    sectionStatus={sectionStatuses.datasets ?? "uncurated"}
+                    onToggleStatus={() => handleToggleSection("datasets")}
+                  />
+                )}
+                humId={humId}
+                originalUrls={{ ja: research?.url.ja ?? null, en: research?.url.en ?? null }}
+                showOriginalIframe={debugOriginal !== "off"}
+                initialTabIndex={2}
+              />
+            </PanelSideProvider>
           }
         />
       </Box>

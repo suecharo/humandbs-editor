@@ -2,13 +2,13 @@ import Autocomplete from "@mui/material/Autocomplete"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Chip from "@mui/material/Chip"
-import Dialog from "@mui/material/Dialog"
 import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
 import TextField from "@mui/material/TextField"
 import equal from "fast-deep-equal"
 
+import { PanelDialog } from "@/components/common/PanelDialog"
 import type { Grant } from "@/schemas/research"
 import { DIALOG_PADDING, DIALOG_TITLE_SX, SUBSECTION_GAP } from "@/theme"
 
@@ -29,7 +29,7 @@ export const GrantEditDialog = ({
   onChange,
   onClose,
 }: GrantEditDialogProps) => (
-  <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+  <PanelDialog open={open} onClose={onClose} maxWidth="md" fullWidth>
     <DialogTitle sx={DIALOG_TITLE_SX}>科研費/助成金を編集</DialogTitle>
     <DialogContent dividers sx={{ p: DIALOG_PADDING }}>
       <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP }}>
@@ -90,5 +90,5 @@ export const GrantEditDialog = ({
       </Button>
       <Button variant="outlined" onClick={onClose}>閉じる</Button>
     </DialogActions>
-  </Dialog>
+  </PanelDialog>
 )

@@ -1,18 +1,19 @@
+import Autocomplete from "@mui/material/Autocomplete"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
-import Chip from "@mui/material/Chip"
-import Dialog from "@mui/material/Dialog"
 import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
 import TextField from "@mui/material/TextField"
-import Typography from "@mui/material/Typography"
 import equal from "fast-deep-equal"
+import { useAtomValue } from "jotai"
 
 import { OrcidAutocomplete } from "@/components/common/OrcidAutocomplete"
+import { PanelDialog } from "@/components/common/PanelDialog"
 import type { OrcidSearchResult } from "@/hooks/use-orcid-search"
 import type { Person } from "@/schemas/research"
-import { DIALOG_PADDING, DIALOG_TITLE_SX, FORM_LABEL_SX, MODIFIED_FIELD_SX, SUBSECTION_GAP } from "@/theme"
+import { researchDraftAtom, versionsDraftAtom } from "@/stores/research-edit"
+import { DIALOG_PADDING, DIALOG_TITLE_SX, MODIFIED_FIELD_SX, SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextField } from "../fields/BilingualTextField"
 import { BilingualTextValueField } from "../fields/BilingualTextValueField"
@@ -32,6 +33,20 @@ export const ControlledAccessUserEditDialog = ({
   onChange,
   onClose,
 }: ControlledAccessUserEditDialogProps) => {
+  const researchDraft = useAtomValue(researchDraftAtom)
+  const versionsDraft = useAtomValue(versionsDraftAtom)
+
+  const availableIds = (() => {
+    if (!researchDraft) return []
+    const latestVersion = versionsDraft.find((v) => v.humVersionId === researchDraft.latestVersion)
+
+    return latestVersion?.datasets.map((d) => d.datasetId) ?? []
+  })()
+
+  const datasetIdsModified = serverUser
+    ? !equal(user.datasetIds ?? [], serverUser.datasetIds ?? [])
+    : false
+
   const handleOrcidSelect = (result: OrcidSearchResult) => {
     const enName = [result.givenNames, result.familyNames].filter(Boolean).join(" ")
     const instName = result.institutionNames[0] ?? ""
@@ -54,7 +69,7 @@ export const ControlledAccessUserEditDialog = ({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <PanelDialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={DIALOG_TITLE_SX}>利用者を編集</DialogTitle>
       <DialogContent dividers sx={{ p: DIALOG_PADDING }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP }}>
@@ -140,18 +155,21 @@ export const ControlledAccessUserEditDialog = ({
               />
             </Box>
           )}
-          {user.datasetIds && user.datasetIds.length > 0 && (
-            <Box>
-              <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: 0.5 }}>
-                データセットID（読み取り専用）
-              </Typography>
-              <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                {user.datasetIds.map((id) => (
-                  <Chip key={id} label={id} size="small" sx={{ fontFamily: "monospace" }} />
-                ))}
-              </Box>
-            </Box>
-          )}
+          <Autocomplete
+            multiple
+            options={availableIds}
+            value={user.datasetIds ?? []}
+            onChange={(_e, newValue) => onChange({ ...user, datasetIds: newValue.length > 0 ? newValue : undefined })}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="データセットID"
+                sx={datasetIdsModified ? MODIFIED_FIELD_SX : undefined}
+              />
+            )}
+            freeSolo={false}
+            disableCloseOnSelect
+          />
         </Box>
       </DialogContent>
       <DialogActions sx={{ p: DIALOG_PADDING, justifyContent: "space-between" }}>
@@ -165,6 +183,6 @@ export const ControlledAccessUserEditDialog = ({
         </Button>
         <Button variant="outlined" onClick={onClose}>閉じる</Button>
       </DialogActions>
-    </Dialog>
+    </PanelDialog>
   )
 }

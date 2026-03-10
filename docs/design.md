@@ -215,7 +215,7 @@ load  ->  in-memory  -> PUT /api/...
 
 | Method | Path | 説明 |
 |---|---|---|
-| GET | `/api/datasets` | dataset 一覧 |
+| GET | `/api/datasets` | 全 datasetId のユニーク一覧。レスポンス: `{ datasetIds: string[] }` |
 | POST | `/api/datasets` | dataset 新規作成 (datasetId はユーザーが指定、humId を紐づけ) |
 | GET | `/api/datasets/:datasetId` | dataset 詳細 (experiments 含む) |
 | PUT | `/api/datasets/:datasetId` | dataset 更新 (experiments 含む) |

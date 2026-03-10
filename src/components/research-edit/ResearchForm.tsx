@@ -3,25 +3,22 @@ import { useAtom, useAtomValue } from "jotai"
 import { useMemo } from "react"
 
 import type { SectionCurationStatus } from "@/schemas/editor-state"
-import type { ResearchVersion } from "@/schemas/research-version"
 import { computeModifiedPaths, researchDraftAtom, researchServerAtom } from "@/stores/research-edit"
 import { SECTION_GAP } from "@/theme"
 
 import { ControlledAccessUserSection } from "./sections/ControlledAccessUserSection"
 import { DataProviderSection } from "./sections/DataProviderSection"
-import { DatasetsSection } from "./sections/DatasetsSection"
 import { GrantSection } from "./sections/GrantSection"
 import { PublicationSection } from "./sections/PublicationSection"
 import { SummarySection } from "./sections/SummarySection"
 import { TitleSection } from "./sections/TitleSection"
 
 interface ResearchFormProps {
-  versions: ResearchVersion[]
   sectionStatuses: Record<string, SectionCurationStatus>
   onToggleSection: (sectionId: string) => void
 }
 
-export const ResearchForm = ({ versions, sectionStatuses, onToggleSection }: ResearchFormProps) => {
+export const ResearchForm = ({ sectionStatuses, onToggleSection }: ResearchFormProps) => {
   const [draft, setDraft] = useAtom(researchDraftAtom)
   const server = useAtomValue(researchServerAtom)
 
@@ -48,12 +45,6 @@ export const ResearchForm = ({ versions, sectionStatuses, onToggleSection }: Res
         sectionStatus={sectionStatuses.summary ?? "uncurated"}
         onToggleStatus={() => onToggleSection("summary")}
         modifiedPaths={modifiedPaths}
-      />
-      <DatasetsSection
-        versions={versions}
-        latestVersionId={draft.latestVersion}
-        sectionStatus={sectionStatuses.datasets ?? "uncurated"}
-        onToggleStatus={() => onToggleSection("datasets")}
       />
       <DataProviderSection
         draft={draft}

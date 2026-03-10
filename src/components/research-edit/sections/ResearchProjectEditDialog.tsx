@@ -1,6 +1,5 @@
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
-import Dialog from "@mui/material/Dialog"
 import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
@@ -8,6 +7,7 @@ import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 import equal from "fast-deep-equal"
 
+import { PanelDialog } from "@/components/common/PanelDialog"
 import type { ResearchProject } from "@/schemas/research"
 import { DIALOG_PADDING, DIALOG_TITLE_SX, FIELD_GROUP_GAP, FORM_LABEL_SX, MODIFIED_FIELD_SX, SUBSECTION_GAP } from "@/theme"
 
@@ -28,7 +28,7 @@ export const ResearchProjectEditDialog = ({
   onChange,
   onClose,
 }: ResearchProjectEditDialogProps) => (
-  <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+  <PanelDialog open={open} onClose={onClose} maxWidth="md" fullWidth>
     <DialogTitle sx={DIALOG_TITLE_SX}>プロジェクトを編集</DialogTitle>
     <DialogContent dividers sx={{ p: DIALOG_PADDING }}>
       <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP }}>
@@ -95,5 +95,5 @@ export const ResearchProjectEditDialog = ({
       </Button>
       <Button variant="outlined" onClick={onClose}>閉じる</Button>
     </DialogActions>
-  </Dialog>
+  </PanelDialog>
 )
