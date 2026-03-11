@@ -80,6 +80,9 @@ export const ResearchListItemSchema = z.object({
   versionCount: z.number(),
   accessRestrictions: z.array(z.string()),
   curationStatus: z.string(),
+  editingBy: z.string().nullable(),
+  editingByName: z.string().nullable(),
+  editingAt: z.string().nullable(),
   datePublished: z.string(),
   dateModified: z.string(),
 })

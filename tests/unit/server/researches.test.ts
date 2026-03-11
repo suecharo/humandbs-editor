@@ -8,6 +8,7 @@ const mockReaddir = vi.fn()
 const mockReadFile = vi.fn()
 const mockWriteFile = vi.fn()
 const mockAccess = vi.fn()
+const mockStat = vi.fn()
 
 vi.mock("node:fs/promises", () => ({
   default: {
@@ -15,11 +16,13 @@ vi.mock("node:fs/promises", () => ({
     readFile: (...args: unknown[]) => mockReadFile(...args),
     writeFile: (...args: unknown[]) => mockWriteFile(...args),
     access: (...args: unknown[]) => mockAccess(...args),
+    stat: (...args: unknown[]) => mockStat(...args),
   },
   readdir: (...args: unknown[]) => mockReaddir(...args),
   readFile: (...args: unknown[]) => mockReadFile(...args),
   writeFile: (...args: unknown[]) => mockWriteFile(...args),
   access: (...args: unknown[]) => mockAccess(...args),
+  stat: (...args: unknown[]) => mockStat(...args),
 }))
 
 const mockResearch = (humId: string) => ({
@@ -135,6 +138,42 @@ describe("GET /api/researches", () => {
     expect(items[0]!.accessRestrictions).toEqual(["Controlled-access (Type I)"])
   })
 
+  it("includes editingBy, editingByName, editingAt in response", async () => {
+    const editorState = {
+      researches: {
+        hum0001: {
+          status: "uncurated",
+          updatedAt: new Date().toISOString(),
+          editingBy: "alice",
+          editingByName: "alice",
+          editingAt: "2024-06-01T00:00:00Z",
+        },
+      },
+      datasets: {},
+      experiments: {},
+    }
+
+    mockReaddir.mockResolvedValue(["hum0001.json"])
+    mockReadFile.mockImplementation(async (filePath: string) => {
+      if (filePath.includes("editor-state")) return JSON.stringify(editorState)
+      if (filePath.includes("research-version")) return JSON.stringify(mockResearchVersion("hum0001", 1))
+
+      return JSON.stringify(mockResearch("hum0001"))
+    })
+
+    const handler = getHandler("/")
+    const req = {} as Request
+    const json = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis() } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    const items = json.mock.calls[0]![0] as { editingBy: string | null; editingByName: string | null; editingAt: string | null }[]
+    expect(items[0]!.editingBy).toBe("alice")
+    expect(items[0]!.editingByName).toBe("alice")
+    expect(items[0]!.editingAt).toBe("2024-06-01T00:00:00Z")
+  })
+
   it("returns uncurated status when editor-state is missing", async () => {
     mockReaddir.mockResolvedValue(["hum0001.json"])
 
@@ -213,17 +252,36 @@ describe("GET /api/researches/:humId", () => {
   it("returns a single research by humId", async () => {
     const research = mockResearch("hum0001")
     mockReadFile.mockResolvedValue(JSON.stringify(research))
+    mockStat.mockResolvedValue({ mtime: new Date("2024-06-01T00:00:00Z") })
 
     const handler = getHandler("/:humId")
     const req = { params: { humId: "hum0001" } } as unknown as Request
     const json = vi.fn()
-    const res = { json, status: vi.fn().mockReturnThis() } as unknown as Response
+    const setHeader = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis(), setHeader } as unknown as Response
 
     await handler(req, res, vi.fn())
 
     expect(json).toHaveBeenCalledTimes(1)
     const result = json.mock.calls[0]![0] as { humId: string }
     expect(result.humId).toBe("hum0001")
+  })
+
+  it("includes X-Modified-At header in response", async () => {
+    const research = mockResearch("hum0001")
+    mockReadFile.mockResolvedValue(JSON.stringify(research))
+    const mtime = new Date("2024-06-01T12:00:00Z")
+    mockStat.mockResolvedValue({ mtime })
+
+    const handler = getHandler("/:humId")
+    const req = { params: { humId: "hum0001" } } as unknown as Request
+    const json = vi.fn()
+    const setHeader = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis(), setHeader } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(setHeader).toHaveBeenCalledWith("X-Modified-At", mtime.toISOString())
   })
 
   it("returns 500 when file does not exist", async () => {
@@ -309,13 +367,15 @@ describe("PUT /api/researches/:humId", () => {
 
   it("saves research and returns the saved data", async () => {
     const research = mockResearch("hum0001")
-    mockAccess.mockResolvedValue(undefined)
+    const mtime = new Date("2024-06-01T00:00:00Z")
+    mockStat.mockResolvedValue({ mtime })
     mockWriteFile.mockResolvedValue(undefined)
 
     const handler = getHandler("/:humId", "put")
-    const req = { params: { humId: "hum0001" }, body: research } as unknown as Request
+    const req = { params: { humId: "hum0001" }, body: research, headers: {} } as unknown as Request
     const json = vi.fn()
-    const res = { json, status: vi.fn().mockReturnThis() } as unknown as Response
+    const setHeader = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis(), setHeader } as unknown as Response
 
     await handler(req, res, vi.fn())
 
@@ -331,7 +391,7 @@ describe("PUT /api/researches/:humId", () => {
 
   it("returns 400 for invalid humId format", async () => {
     const handler = getHandler("/:humId", "put")
-    const req = { params: { humId: "../etc/passwd" }, body: {} } as unknown as Request
+    const req = { params: { humId: "../etc/passwd" }, body: {}, headers: {} } as unknown as Request
     const json = vi.fn()
     const status = vi.fn().mockReturnThis()
     const res = { json, status } as unknown as Response
@@ -344,10 +404,10 @@ describe("PUT /api/researches/:humId", () => {
 
   it("returns 400 when body humId does not match URL parameter", async () => {
     const research = mockResearch("hum0002")
-    mockAccess.mockResolvedValue(undefined)
+    mockStat.mockResolvedValue({ mtime: new Date() })
 
     const handler = getHandler("/:humId", "put")
-    const req = { params: { humId: "hum0001" }, body: research } as unknown as Request
+    const req = { params: { humId: "hum0001" }, body: research, headers: {} } as unknown as Request
     const json = vi.fn()
     const status = vi.fn().mockReturnThis()
     const res = { json, status } as unknown as Response
@@ -360,7 +420,7 @@ describe("PUT /api/researches/:humId", () => {
 
   it("returns 400 for invalid request body", async () => {
     const handler = getHandler("/:humId", "put")
-    const req = { params: { humId: "hum0001" }, body: { humId: "hum0001" } } as unknown as Request
+    const req = { params: { humId: "hum0001" }, body: { humId: "hum0001" }, headers: {} } as unknown as Request
     const json = vi.fn()
     const status = vi.fn().mockReturnThis()
     const res = { json, status } as unknown as Response
@@ -374,10 +434,10 @@ describe("PUT /api/researches/:humId", () => {
 
   it("returns 404 when research file does not exist", async () => {
     const research = mockResearch("hum9999")
-    mockAccess.mockRejectedValue(new Error("ENOENT"))
+    mockStat.mockRejectedValue(new Error("ENOENT"))
 
     const handler = getHandler("/:humId", "put")
-    const req = { params: { humId: "hum9999" }, body: research } as unknown as Request
+    const req = { params: { humId: "hum9999" }, body: research, headers: {} } as unknown as Request
     const json = vi.fn()
     const status = vi.fn().mockReturnThis()
     const res = { json, status } as unknown as Response
@@ -390,17 +450,85 @@ describe("PUT /api/researches/:humId", () => {
 
   it("returns 500 when writeFile fails", async () => {
     const research = mockResearch("hum0001")
-    mockAccess.mockResolvedValue(undefined)
+    mockStat.mockResolvedValue({ mtime: new Date() })
     mockWriteFile.mockRejectedValue(new Error("EACCES"))
 
     const handler = getHandler("/:humId", "put")
-    const req = { params: { humId: "hum0001" }, body: research } as unknown as Request
+    const req = { params: { humId: "hum0001" }, body: research, headers: {} } as unknown as Request
+    const json = vi.fn()
+    const status = vi.fn().mockReturnThis()
+    const setHeader = vi.fn()
+    const res = { json, status, setHeader } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(status).toHaveBeenCalledWith(500)
+  })
+
+  it("succeeds when X-Base-Modified-At matches file mtime", async () => {
+    const research = mockResearch("hum0001")
+    const mtime = new Date("2024-06-01T00:00:00Z")
+    mockStat.mockResolvedValue({ mtime })
+    mockWriteFile.mockResolvedValue(undefined)
+
+    const handler = getHandler("/:humId", "put")
+    const req = {
+      params: { humId: "hum0001" },
+      body: research,
+      headers: { "x-base-modified-at": mtime.toISOString() },
+    } as unknown as Request
+    const json = vi.fn()
+    const setHeader = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis(), setHeader } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(json).toHaveBeenCalledTimes(1)
+    expect(mockWriteFile).toHaveBeenCalled()
+  })
+
+  it("returns 409 when X-Base-Modified-At is older than file mtime", async () => {
+    const research = mockResearch("hum0001")
+    const fileMtime = new Date("2024-06-02T00:00:00Z")
+    const baseMtime = new Date("2024-06-01T00:00:00Z")
+    mockStat.mockResolvedValue({ mtime: fileMtime })
+
+    const handler = getHandler("/:humId", "put")
+    const req = {
+      params: { humId: "hum0001" },
+      body: research,
+      headers: { "x-base-modified-at": baseMtime.toISOString() },
+    } as unknown as Request
     const json = vi.fn()
     const status = vi.fn().mockReturnThis()
     const res = { json, status } as unknown as Response
 
     await handler(req, res, vi.fn())
 
-    expect(status).toHaveBeenCalledWith(500)
+    expect(status).toHaveBeenCalledWith(409)
+    const result = json.mock.calls[0]![0] as { error: string }
+    expect(result.error).toBe("File has been modified by another user")
+  })
+
+  it("allows PUT without X-Base-Modified-At header for backward compatibility", async () => {
+    const research = mockResearch("hum0001")
+    const mtime = new Date("2024-06-01T00:00:00Z")
+    mockStat.mockResolvedValue({ mtime })
+    mockWriteFile.mockResolvedValue(undefined)
+
+    const handler = getHandler("/:humId", "put")
+    const req = {
+      params: { humId: "hum0001" },
+      body: research,
+      headers: {},
+    } as unknown as Request
+    const json = vi.fn()
+    const setHeader = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis(), setHeader } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(json).toHaveBeenCalledTimes(1)
+    expect(mockWriteFile).toHaveBeenCalled()
   })
 })

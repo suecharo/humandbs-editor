@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 
-import { FORM_LABEL_SX, MONOSPACE_ID_SX } from "@/theme"
+import { COMPACT_GAP, FORM_LABEL_SX, MONOSPACE_ID_SX } from "@/theme"
 
 interface ReadOnlyFieldProps {
   label: string
@@ -11,7 +11,7 @@ interface ReadOnlyFieldProps {
 
 export const ReadOnlyField = ({ label, value, monospace }: ReadOnlyFieldProps) => (
   <Box sx={{ mb: 1.5 }}>
-    <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: 0.25 }}>
+    <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: COMPACT_GAP }}>
       {label}
     </Typography>
     <Typography variant="body1" sx={{ whiteSpace: "pre-wrap", wordBreak: "break-word", ...(monospace ? MONOSPACE_ID_SX : {}) }}>

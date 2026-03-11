@@ -1,8 +1,13 @@
 import equal from "fast-deep-equal"
 import { atom } from "jotai"
 
+import type { Dataset } from "@/schemas/dataset"
 import type { Research } from "@/schemas/research"
 import type { ResearchVersion } from "@/schemas/research-version"
+
+export const fileModifiedAtAtom = atom<string | null>(null)
+
+export const datasetModifiedAtsAtom = atom<Record<string, string>>({})
 
 export const researchServerAtom = atom<Research | null>(null)
 
@@ -12,16 +17,23 @@ export const versionsServerAtom = atom<ResearchVersion[]>([])
 
 export const versionsDraftAtom = atom<ResearchVersion[]>([])
 
+export const datasetsServerAtom = atom<Record<string, Dataset>>({})
+
+export const datasetsDraftAtom = atom<Record<string, Dataset>>({})
+
 export const dirtyAtom = atom((get) => {
   const researchServer = get(researchServerAtom)
   const researchDraft = get(researchDraftAtom)
   const versionsServer = get(versionsServerAtom)
   const versionsDraft = get(versionsDraftAtom)
+  const datasetsServer = get(datasetsServerAtom)
+  const datasetsDraft = get(datasetsDraftAtom)
 
   const researchDirty = researchServer !== null && researchDraft !== null && !equal(researchServer, researchDraft)
   const versionsDirty = !equal(versionsServer, versionsDraft)
+  const datasetsDirty = !equal(datasetsServer, datasetsDraft)
 
-  return researchDirty || versionsDirty
+  return researchDirty || versionsDirty || datasetsDirty
 })
 
 /** @deprecated Use dirtyAtom instead */

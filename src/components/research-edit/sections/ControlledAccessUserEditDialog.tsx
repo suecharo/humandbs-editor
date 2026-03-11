@@ -13,7 +13,7 @@ import { PanelDialog } from "@/components/common/PanelDialog"
 import type { OrcidSearchResult } from "@/hooks/use-orcid-search"
 import type { Person } from "@/schemas/research"
 import { researchDraftAtom, versionsDraftAtom } from "@/stores/research-edit"
-import { DIALOG_PADDING, DIALOG_TITLE_SX, MODIFIED_FIELD_SX, SUBSECTION_GAP } from "@/theme"
+import { DIALOG_PADDING, DIALOG_TITLE_SX, INLINE_GAP, MODIFIED_FIELD_SX, SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextField } from "../fields/BilingualTextField"
 import { BilingualTextValueField } from "../fields/BilingualTextValueField"
@@ -126,7 +126,7 @@ export const ControlledAccessUserEditDialog = ({
             />
           )}
           {user.periodOfDataUse && (
-            <Box sx={{ display: "flex", gap: 1 }}>
+            <Box sx={{ display: "flex", gap: INLINE_GAP }}>
               <TextField
                 label="利用開始日"
                 value={user.periodOfDataUse.startDate ?? ""}

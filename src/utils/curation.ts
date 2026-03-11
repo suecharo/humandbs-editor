@@ -3,7 +3,6 @@ import type { CurationStatus, SectionCurationStatus } from "../schemas/editor-st
 export const RESEARCH_SECTION_IDS = [
   "title",
   "summary",
-  "datasets",
   "dataProvider",
   "grant",
   "publication",

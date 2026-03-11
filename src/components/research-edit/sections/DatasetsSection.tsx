@@ -4,16 +4,18 @@ import Button from "@mui/material/Button"
 import Stack from "@mui/material/Stack"
 import Typography from "@mui/material/Typography"
 import { useQueries } from "@tanstack/react-query"
-import { useState } from "react"
+import { useSetAtom } from "jotai"
+import { useEffect, useState } from "react"
 
 import { ConfirmDialog } from "@/components/common/ConfirmDialog"
 import { useDeleteDataset } from "@/hooks/use-delete-dataset"
+import type { Dataset } from "@/schemas/dataset"
 import { DatasetSchema } from "@/schemas/dataset"
 import type { SectionCurationStatus } from "@/schemas/editor-state"
 import type { ResearchVersion } from "@/schemas/research-version"
+import { datasetsDraftAtom, datasetsServerAtom } from "@/stores/research-edit"
+import { FIELD_GROUP_GAP, SUBSECTION_GAP } from "@/theme"
 import { fetchApi } from "@/utils/fetch-api"
-
-import { SectionCurationToggle } from "../SectionCurationToggle"
 
 import { DatasetAddDialog } from "./DatasetAddDialog"
 import { DatasetCard } from "./DatasetCard"
@@ -22,11 +24,12 @@ interface DatasetsSectionProps {
   humId: string
   versions: ResearchVersion[]
   latestVersionId: string
-  sectionStatus?: SectionCurationStatus | undefined
-  onToggleStatus?: (() => void) | undefined
+  sectionStatuses: Record<string, SectionCurationStatus>
+  onToggleSection: (sectionId: string) => void
+  readOnly?: boolean
 }
 
-export const DatasetsSection = ({ humId, versions, latestVersionId, sectionStatus, onToggleStatus }: DatasetsSectionProps) => {
+export const DatasetsSection = ({ humId, versions, latestVersionId, sectionStatuses, onToggleSection, readOnly: _readOnly }: DatasetsSectionProps) => {
   const latestVersion = versions.find((v) => v.humVersionId === latestVersionId) ?? versions.at(-1)
   const datasetRefs = latestVersion?.datasets ?? []
 
@@ -34,6 +37,8 @@ export const DatasetsSection = ({ humId, versions, latestVersionId, sectionStatu
   const [deleteTarget, setDeleteTarget] = useState<{ datasetId: string; version: string } | null>(null)
 
   const deleteMutation = useDeleteDataset(humId)
+  const setDatasetsServer = useSetAtom(datasetsServerAtom)
+  const setDatasetsDraft = useSetAtom(datasetsDraftAtom)
 
   const datasetQueries = useQueries({
     queries: datasetRefs.map((ref) => {
@@ -46,18 +51,59 @@ export const DatasetsSection = ({ humId, versions, latestVersionId, sectionStatu
     }),
   })
 
+  // Sync query results → Jotai atoms
+  const allLoaded = datasetQueries.every((q) => q.isSuccess)
+  const queryDataKey = datasetQueries.map((q) => q.dataUpdatedAt).join(",")
+
+  useEffect(() => {
+    if (!allLoaded) return
+    const serverMap: Record<string, Dataset> = {}
+    for (const query of datasetQueries) {
+      if (query.data) {
+        const key = `${query.data.datasetId}-${query.data.version}`
+        serverMap[key] = query.data
+      }
+    }
+    if (Object.keys(serverMap).length === 0) return
+
+    setDatasetsServer(serverMap)
+    setDatasetsDraft((prev) => {
+      if (Object.keys(prev).length === 0) return structuredClone(serverMap)
+      const next = { ...prev }
+      for (const key of Object.keys(serverMap)) {
+        const serverDs = serverMap[key]
+        if (!(key in next) && serverDs) next[key] = structuredClone(serverDs)
+      }
+
+      return next
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- queryDataKey captures data freshness
+  }, [queryDataKey, allLoaded, setDatasetsServer, setDatasetsDraft])
+
   const handleDeleteConfirm = () => {
     if (!deleteTarget) return
 
     const key = `${deleteTarget.datasetId}-${deleteTarget.version}`
     deleteMutation.mutate(key, {
-      onSuccess: () => setDeleteTarget(null),
+      onSuccess: () => {
+        setDeleteTarget(null)
+        setDatasetsServer((prev) => {
+          const { [key]: _, ...rest } = prev
+
+          return rest
+        })
+        setDatasetsDraft((prev) => {
+          const { [key]: _, ...rest } = prev
+
+          return rest
+        })
+      },
     })
   }
 
   return (
     <>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+      <Box sx={{ mb: SUBSECTION_GAP }}>
         <Button
           variant="outlined"
           size="small"
@@ -66,12 +112,9 @@ export const DatasetsSection = ({ humId, versions, latestVersionId, sectionStatu
         >
           Add Dataset
         </Button>
-        {sectionStatus !== undefined && onToggleStatus && (
-          <SectionCurationToggle status={sectionStatus} onToggle={onToggleStatus} />
-        )}
       </Box>
 
-      <Stack spacing={1.5}>
+      <Stack spacing={FIELD_GROUP_GAP}>
         {datasetRefs.length === 0 && (
           <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
             No datasets added yet.
@@ -79,15 +122,18 @@ export const DatasetsSection = ({ humId, versions, latestVersionId, sectionStatu
         )}
 
         {datasetRefs.map((ref, index) => {
+          const key = `${ref.datasetId}-${ref.version}`
           const query = datasetQueries[index]
 
           return (
             <DatasetCard
-              key={`${ref.datasetId}-${ref.version}`}
+              key={key}
+              datasetKey={key}
               datasetId={ref.datasetId}
               version={ref.version}
-              dataset={query?.data}
               isLoading={query?.isLoading ?? true}
+              curationStatus={sectionStatuses[`dataset:${key}`] ?? "uncurated"}
+              onToggleCuration={() => onToggleSection(`dataset:${key}`)}
               onRemove={() => setDeleteTarget(ref)}
             />
           )

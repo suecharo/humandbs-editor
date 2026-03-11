@@ -51,6 +51,8 @@ export const createDatasetsRouter = (structuredJsonDir: string, editorStateDir: 
 
       const filePath = path.join(structuredJsonDir, "dataset", `${parsed.fileKey}.json`)
       const dataset = await readJson(filePath, DatasetSchema)
+      const stat = await fs.stat(filePath)
+      res.setHeader("X-Modified-At", stat.mtime.toISOString())
       res.json(dataset)
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -176,15 +178,33 @@ export const createDatasetsRouter = (structuredJsonDir: string, editorStateDir: 
       const filePath = path.join(structuredJsonDir, "dataset", `${parsed.fileKey}.json`)
 
       // Verify file exists
+      let stat
       try {
-        await fs.access(filePath)
+        stat = await fs.stat(filePath)
       } catch {
         res.status(404).json({ error: `Dataset ${parsed.fileKey} not found` })
 
         return
       }
 
+      // Optimistic lock: compare mtime
+      const baseModifiedAt = req.headers["x-base-modified-at"]
+      if (typeof baseModifiedAt === "string") {
+        const baseMtime = new Date(baseModifiedAt).getTime()
+        const fileMtime = stat.mtime.getTime()
+        if (fileMtime > baseMtime) {
+          res.status(409).json({
+            error: "File has been modified by another user",
+            modifiedAt: stat.mtime.toISOString(),
+          })
+
+          return
+        }
+      }
+
       await fs.writeFile(filePath, JSON.stringify(bodyResult.data, null, 2), "utf-8")
+      const newStat = await fs.stat(filePath)
+      res.setHeader("X-Modified-At", newStat.mtime.toISOString())
       res.json(bodyResult.data)
     } catch (error) {
       // eslint-disable-next-line no-console

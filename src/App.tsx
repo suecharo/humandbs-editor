@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query"
 import { RouterProvider } from "@tanstack/react-router"
 import { Provider as JotaiProvider } from "jotai"
 
+import { UserNameDialog } from "./components/common/UserNameDialog"
 import { store } from "./jotai-store"
 import { queryClient } from "./query-client"
 import { router } from "./router"
@@ -15,6 +16,7 @@ export const App = () => (
     <JotaiProvider store={store}>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
+        <UserNameDialog />
       </QueryClientProvider>
     </JotaiProvider>
   </ThemeProvider>

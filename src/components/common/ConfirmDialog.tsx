@@ -7,7 +7,7 @@ import DialogContentText from "@mui/material/DialogContentText"
 import DialogTitle from "@mui/material/DialogTitle"
 import { type ReactNode, useId } from "react"
 
-import { DIALOG_MIN_WIDTH } from "@/theme"
+import { DIALOG_MIN_WIDTH, DIALOG_PADDING } from "@/theme"
 
 export interface ConfirmDialogProps {
   open: boolean
@@ -38,7 +38,7 @@ export const ConfirmDialog = ({
           ? <DialogContentText id={descriptionId}>{children}</DialogContentText>
           : <Box id={descriptionId}>{children}</Box>}
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
+      <DialogActions sx={{ p: DIALOG_PADDING }}>
         <Button variant="outlined" onClick={onCancel} autoFocus>Cancel</Button>
         <Button onClick={onConfirm} color={confirmColor} variant="contained">
           {confirmLabel}

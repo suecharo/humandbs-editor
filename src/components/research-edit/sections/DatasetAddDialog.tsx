@@ -15,7 +15,7 @@ import { useCreateDataset } from "@/hooks/use-create-dataset"
 import { useDialogDraft } from "@/hooks/use-dialog-draft"
 import type { CriteriaCanonical } from "@/schemas/common"
 import type { CreateDatasetBody } from "@/schemas/dataset"
-import { DIALOG_MIN_WIDTH, FIELD_GROUP_GAP } from "@/theme"
+import { DIALOG_MIN_WIDTH, DIALOG_PADDING, DIALOG_TITLE_SX, SUBSECTION_GAP } from "@/theme"
 
 const CRITERIA_OPTIONS: CriteriaCanonical[] = [
   "Controlled-access (Type I)",
@@ -64,9 +64,9 @@ export const DatasetAddDialog = ({ open, humId, humVersionId, onClose }: Dataset
 
   return (
     <PanelDialog open={open} onClose={onClose} sx={{ "& .MuiDialog-paper": { minWidth: DIALOG_MIN_WIDTH } }}>
-      <DialogTitle>データセットの追加</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: FIELD_GROUP_GAP, pt: 1 }}>
+      <DialogTitle sx={DIALOG_TITLE_SX}>データセットの追加</DialogTitle>
+      <DialogContent dividers sx={{ p: DIALOG_PADDING }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP }}>
           <TextField
             label="Dataset ID"
             value={draft.datasetId}
@@ -91,7 +91,7 @@ export const DatasetAddDialog = ({ open, humId, humVersionId, onClose }: Dataset
             fullWidth
             required
           />
-          <FormControl fullWidth>
+          <FormControl fullWidth size="small">
             <InputLabel>Criteria</InputLabel>
             <Select
               value={draft.criteria}
@@ -123,10 +123,11 @@ export const DatasetAddDialog = ({ open, humId, humVersionId, onClose }: Dataset
           />
         </Box>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button variant="outlined" onClick={onClose}>キャンセル</Button>
+      <DialogActions sx={{ p: DIALOG_PADDING }}>
+        <Button variant="outlined" size="small" onClick={onClose}>キャンセル</Button>
         <Button
           variant="contained"
+          size="small"
           onClick={handleSubmit}
           disabled={createMutation.isPending}
         >

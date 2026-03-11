@@ -7,6 +7,7 @@ import { CardActionButtons } from "@/components/common/CardActionButtons"
 import { CollapsibleChips } from "@/components/common/CollapsibleChips"
 import type { CardActions } from "@/components/common/ItemCardList"
 import type { Grant } from "@/schemas/research"
+import { COMPACT_GAP } from "@/theme"
 
 interface GrantCardProps {
   grant: Grant
@@ -36,7 +37,7 @@ export const GrantCard = ({ grant, actions, serverGrant }: GrantCardProps) => {
 
   return (
     <Paper variant="outlined" sx={{ p: 2 }}>
-      <Box sx={{ display: "flex", alignItems: "flex-start", gap: 0.5 }}>
+      <Box sx={{ display: "flex", alignItems: "flex-start", gap: COMPACT_GAP }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <BilingualCardContent rows={rows} />
           <CollapsibleChips ids={grant.id} />

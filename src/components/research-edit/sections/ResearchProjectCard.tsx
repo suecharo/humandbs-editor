@@ -8,7 +8,7 @@ import { BilingualCardContent } from "@/components/common/BilingualCardContent"
 import { CardActionButtons } from "@/components/common/CardActionButtons"
 import type { CardActions } from "@/components/common/ItemCardList"
 import type { ResearchProject } from "@/schemas/research"
-import { MODIFIED_TEXT_SX } from "@/theme"
+import { COMPACT_GAP, MODIFIED_TEXT_SX } from "@/theme"
 
 interface ResearchProjectCardProps {
   project: ResearchProject
@@ -25,7 +25,7 @@ export const ResearchProjectCard = ({ project, actions, serverProject }: Researc
 
   return (
     <Paper variant="outlined" sx={{ p: 2 }}>
-      <Box sx={{ display: "flex", alignItems: "flex-start", gap: 0.5 }}>
+      <Box sx={{ display: "flex", alignItems: "flex-start", gap: COMPACT_GAP }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <BilingualCardContent
             rows={[{

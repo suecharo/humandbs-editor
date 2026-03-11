@@ -2,6 +2,8 @@ import Chip from "@mui/material/Chip"
 import Stack from "@mui/material/Stack"
 import Typography from "@mui/material/Typography"
 
+import { COMPACT_GAP } from "@/theme"
+
 const DEFAULT_VISIBLE = 3
 
 interface CollapsibleChipsProps {
@@ -16,7 +18,7 @@ export const CollapsibleChips = ({ ids, maxVisible = DEFAULT_VISIBLE }: Collapsi
   const hiddenCount = ids.length - maxVisible
 
   return (
-    <Stack direction="row" spacing={0.5} sx={{ mt: 0.75, flexWrap: "wrap", gap: 0.5, alignItems: "center" }}>
+    <Stack direction="row" spacing={COMPACT_GAP} sx={{ mt: 0.75, flexWrap: "wrap", gap: COMPACT_GAP, alignItems: "center" }}>
       {visible.map((id) => (
         <Chip key={id} label={id} size="small" sx={{ fontFamily: "monospace" }} />
       ))}

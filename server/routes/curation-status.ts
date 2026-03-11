@@ -26,6 +26,12 @@ export const createCurationStatusRouter = (editorStateDir: string): Router => {
       for (const id of RESEARCH_SECTION_IDS) {
         sectionStatuses[id] = (stored[id] as SectionCurationStatus) ?? "uncurated"
       }
+      // Include dynamic dataset keys (e.g. "dataset:JGAS000123-v1")
+      for (const [key, value] of Object.entries(stored)) {
+        if (key.startsWith("dataset:")) {
+          sectionStatuses[key] = value as SectionCurationStatus
+        }
+      }
 
       const status = deriveCurationStatus(sectionStatuses)
 
@@ -57,6 +63,15 @@ export const createCurationStatusRouter = (editorStateDir: string): Router => {
       for (const id of RESEARCH_SECTION_IDS) {
         merged[id] = bodyResult.data.sectionStatuses[id]
           ?? (currentSectionStatuses[id] as SectionCurationStatus)
+          ?? "uncurated"
+      }
+      // Merge dynamic dataset keys
+      for (const key of new Set([
+        ...Object.keys(currentSectionStatuses).filter((k) => k.startsWith("dataset:")),
+        ...Object.keys(bodyResult.data.sectionStatuses).filter((k) => k.startsWith("dataset:")),
+      ])) {
+        merged[key] = bodyResult.data.sectionStatuses[key]
+          ?? (currentSectionStatuses[key] as SectionCurationStatus)
           ?? "uncurated"
       }
 

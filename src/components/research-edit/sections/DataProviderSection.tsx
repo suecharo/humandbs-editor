@@ -73,7 +73,7 @@ export const DataProviderSection = memo(({ draft, onChange, serverProviders, ser
         )}
       />
 
-      <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 2, mb: 1 }}>
+      <Typography variant="subtitle2" color="text.secondary" sx={{ mt: SUBSECTION_GAP, mb: SUBSECTION_GAP }}>
         研究プロジェクト
       </Typography>
 

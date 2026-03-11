@@ -1,4 +1,4 @@
-import type { NormalizedPolicy } from "./common"
+import type { NormalizedPolicy, PolicyCanonical } from "./common"
 import type {
   DiseaseInfo,
   Experiment,
@@ -93,8 +93,21 @@ export const createDefaultPlatformInfo = (): PlatformInfo => ({
   model: null,
 })
 
+const POLICY_CANONICAL_DATA: Record<Exclude<PolicyCanonical, "custom-policy">, { ja: string; en: string; url: string }> = {
+  "nbdc-policy": { ja: "NBDC policy", en: "NBDC policy", url: "https://humandbs.dbcls.jp/nbdc-policy" },
+  "company-limitation-policy": { ja: "民間企業における利用禁止", en: "Company User Limit", url: "https://humandbs.dbcls.jp/policy-companylimitation" },
+  "cancer-research-policy": { ja: "Cancer Research Use Only", en: "Cancer Research Use Only", url: "https://humandbs.dbcls.jp/policy-cancer" },
+  "familial-policy": { ja: "Familial policy", en: "Familial policy", url: "https://humandbs.dbcls.jp/familial-policy" },
+}
+
+export const getPolicyDefaults = (id: PolicyCanonical): { name: { ja: string; en: string }; url: string | null } => {
+  if (id === "custom-policy") return { name: { ja: "", en: "" }, url: null }
+  const data = POLICY_CANONICAL_DATA[id]
+
+  return { name: { ja: data.ja, en: data.en }, url: data.url }
+}
+
 export const createDefaultNormalizedPolicy = (): NormalizedPolicy => ({
   id: "nbdc-policy",
-  name: { ja: "", en: "" },
-  url: null,
+  ...getPolicyDefaults("nbdc-policy"),
 })

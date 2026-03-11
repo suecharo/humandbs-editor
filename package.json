@@ -10,7 +10,8 @@
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:mutation": "stryker run --configFile tests/stryker.config.json"
+    "test:mutation": "stryker run --configFile tests/stryker.config.json",
+    "generate:facet-suggestions": "tsx scripts/generate-facet-suggestions.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

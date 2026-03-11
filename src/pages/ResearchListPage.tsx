@@ -1,6 +1,7 @@
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined"
 import ExpandLessIcon from "@mui/icons-material/ExpandLess"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import LockIcon from "@mui/icons-material/Lock"
 import SearchIcon from "@mui/icons-material/Search"
 import Alert from "@mui/material/Alert"
 import Box from "@mui/material/Box"
@@ -10,7 +11,6 @@ import FormControl from "@mui/material/FormControl"
 import IconButton from "@mui/material/IconButton"
 import InputAdornment from "@mui/material/InputAdornment"
 import InputLabel from "@mui/material/InputLabel"
-import MuiLink from "@mui/material/Link"
 import MenuItem from "@mui/material/MenuItem"
 import Paper from "@mui/material/Paper"
 import type { SelectChangeEvent } from "@mui/material/Select"
@@ -35,6 +35,14 @@ import { useResearches } from "../hooks/use-researches"
 import { useSortState } from "../hooks/use-sort-state"
 import type { ResearchListItem } from "../schemas/research"
 import { CONTENT_MARGIN_Y, EXPAND_ICON_SIZE, MONOSPACE_ID_SX, MONOSPACE_SMALL_SX } from "../theme"
+
+const LOCK_TIMEOUT_MS = 30 * 60 * 1000
+
+const isLockActive = (editingAt: string | null): boolean => {
+  if (editingAt === null) return false
+
+  return Date.now() - new Date(editingAt).getTime() <= LOCK_TIMEOUT_MS
+}
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
@@ -98,15 +106,13 @@ const ExpandableDatasets = ({ count, datasetIds }: { count: number; datasetIds: 
       {expanded && (
         <Box sx={{ mt: 0.5, display: "flex", flexDirection: "column", gap: 0.25 }}>
           {datasetIds.map((id) => (
-            <MuiLink
+            <Typography
               key={id}
-              href={`/datasets/${id}`}
               variant="body2"
               sx={MONOSPACE_SMALL_SX}
-              onClick={(e) => e.stopPropagation()}
             >
               {id}
-            </MuiLink>
+            </Typography>
           ))}
         </Box>
       )}
@@ -241,6 +247,7 @@ export const ResearchListPage = () => {
               <col style={{ width: 88 }} />
               <col style={{ width: 130 }} />
               <col style={{ width: 110 }} />
+              <col style={{ width: 120 }} />
               <col style={{ width: 72 }} />
             </colgroup>
             <TableHead>
@@ -264,6 +271,7 @@ export const ResearchListPage = () => {
                   アクセス制限
                 </SortableTableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Status</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>編集中</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -296,6 +304,14 @@ export const ResearchListPage = () => {
                   <TableCell>
                     <CurationStatusChip status={r.curationStatus} />
                   </TableCell>
+                  <TableCell>
+                    {r.editingBy !== null && isLockActive(r.editingAt) && (
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                        <LockIcon sx={{ fontSize: "0.875rem", color: "warning.main" }} />
+                        <Typography variant="body2" noWrap>{r.editingByName}</Typography>
+                      </Box>
+                    )}
+                  </TableCell>
                   <TableCell align="center">
                     <Tooltip title="編集">
                       <IconButton
@@ -314,7 +330,7 @@ export const ResearchListPage = () => {
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                     <Typography variant="body2" color="text.secondary">
                       No researches found
                     </Typography>

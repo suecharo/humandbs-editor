@@ -5,7 +5,7 @@ interface NullableNumberFieldProps {
   label: string
   value: number | null
   onChange: (value: number | null) => void
-  sx?: SxProps<Theme>
+  sx?: SxProps<Theme> | undefined
 }
 
 export const NullableNumberField = ({ label, value, onChange, sx }: NullableNumberFieldProps) => (

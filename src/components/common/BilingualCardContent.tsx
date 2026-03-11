@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 
-import { ALPHA_BG_WARNING_SUBTLE, MODIFIED_TEXT_SX } from "@/theme"
+import { ALPHA_BG_WARNING_SUBTLE, COMPACT_GAP, MODIFIED_TEXT_SX } from "@/theme"
 
 export interface BilingualRow {
   label: string
@@ -53,7 +53,7 @@ const BilingualField = ({ label, ja, en, jaModified, enModified }: BilingualRow)
 }
 
 export const BilingualCardContent = ({ rows }: { rows: BilingualRow[] }) => (
-  <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+  <Box sx={{ display: "flex", flexDirection: "column", gap: COMPACT_GAP }}>
     {rows.map((row) => (
       <BilingualField key={row.label} {...row} />
     ))}

@@ -5,10 +5,13 @@ import Breadcrumbs from "@mui/material/Breadcrumbs"
 import CircularProgress from "@mui/material/CircularProgress"
 import Container from "@mui/material/Container"
 import Typography from "@mui/material/Typography"
-import { Link, useBlocker } from "@tanstack/react-router"
+import { Link, useBlocker, useNavigate } from "@tanstack/react-router"
+import equal from "fast-deep-equal"
 import { useAtom, useAtomValue, useSetAtom } from "jotai"
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
+import { ConfirmDialog } from "../components/common/ConfirmDialog"
+import { LockConflictDialog } from "../components/common/LockConflictDialog"
 import { AppFooter } from "../components/layout/AppFooter"
 import { SplitLayout } from "../components/layout/SplitLayout"
 import { ResearchForm } from "../components/research-edit/ResearchForm"
@@ -17,20 +20,29 @@ import { DatasetsSection } from "../components/research-edit/sections/DatasetsSe
 import { TabbedPane } from "../components/research-edit/TabbedPane"
 import { PanelSideProvider } from "../contexts/panel-side"
 import { useCurationStatus, useUpdateSectionStatus } from "../hooks/use-curation-status"
+import { useHeartbeat } from "../hooks/use-heartbeat"
+import { LockConflictError, useAcquireLock } from "../hooks/use-lock"
 import { useResearch } from "../hooks/use-research"
 import { useResearchVersions } from "../hooks/use-research-versions"
+import { useSaveDataset } from "../hooks/use-save-dataset"
 import { useSaveResearch } from "../hooks/use-save-research"
 import { useSaveResearchVersions } from "../hooks/use-save-research-versions"
 import { researchEditRoute } from "../router"
 import type { SectionCurationStatus } from "../schemas/editor-state"
 import type { ResearchVersion } from "../schemas/research-version"
-import { dirtyAtom, researchDraftAtom, researchServerAtom, versionsDraftAtom, versionsServerAtom } from "../stores/research-edit"
-import { FOOTER_HEIGHT, HEADER_HEIGHT, SUBSECTION_GAP } from "../theme"
+import { datasetModifiedAtsAtom, datasetsDraftAtom, datasetsServerAtom, dirtyAtom, fileModifiedAtAtom, researchDraftAtom, researchServerAtom, versionsDraftAtom, versionsServerAtom } from "../stores/research-edit"
+import { userNameAtom } from "../stores/user"
+import { FOOTER_HEIGHT, HEADER_HEIGHT, INLINE_ICON_SIZE, SUBSECTION_GAP } from "../theme"
 import { RESEARCH_SECTION_IDS } from "../utils/curation"
+import { ConflictError } from "../utils/fetch-api"
+
+type ViewMode = "pending" | "editing" | "readOnly"
 
 export const ResearchEditPage = () => {
   const { humId } = researchEditRoute.useParams()
   const { debugOriginal } = researchEditRoute.useSearch()
+  const navigate = useNavigate()
+  const userName = useAtomValue(userNameAtom)
   const { data: research, isLoading, error } = useResearch(humId)
   const { data: versions } = useResearchVersions(humId)
   const { data: curationData } = useCurationStatus(humId)
@@ -42,8 +54,113 @@ export const ResearchEditPage = () => {
   const draft = useAtomValue(researchDraftAtom)
   const [versionsServer, setVersionsServer] = useAtom(versionsServerAtom)
   const [versionsDraft, setVersionsDraft] = useAtom(versionsDraftAtom)
+  const datasetsServerVal = useAtomValue(datasetsServerAtom)
+  const datasetsDraftVal = useAtomValue(datasetsDraftAtom)
+  const setDatasetsServer = useSetAtom(datasetsServerAtom)
+  const setDatasetsDraft = useSetAtom(datasetsDraftAtom)
+  const setFileModifiedAt = useSetAtom(fileModifiedAtAtom)
+  const setDatasetModifiedAts = useSetAtom(datasetModifiedAtsAtom)
+  const datasetSaveMutation = useSaveDataset()
   const dirty = useAtomValue(dirtyAtom)
 
+  // Lock state
+  const [viewMode, setViewMode] = useState<ViewMode>("pending")
+  const [lockConflict, setLockConflict] = useState<{ editingByName: string; editingAt: string } | null>(null)
+  const [conflictDialogOpen, setConflictDialogOpen] = useState(false)
+  const acquireLock = useAcquireLock()
+  const lockAcquiredRef = useRef(false)
+
+  // Heartbeat
+  useHeartbeat(humId, userName, viewMode === "editing")
+
+  // Acquire lock on mount
+  useEffect(() => {
+    if (!userName || lockAcquiredRef.current) return
+    lockAcquiredRef.current = true
+
+    acquireLock.mutate(
+      { humId, userName },
+      {
+        onSuccess: () => setViewMode("editing"),
+        onError: (err) => {
+          if (err instanceof LockConflictError) {
+            setLockConflict({
+              editingByName: err.lockInfo.editingByName,
+              editingAt: err.lockInfo.editingAt,
+            })
+          } else {
+            // On error (e.g. network), allow editing anyway
+            setViewMode("editing")
+          }
+        },
+      },
+    )
+  }, [userName, humId, acquireLock])
+
+  // Release lock on unmount / page hide
+  useEffect(() => {
+    if (!userName) return
+
+    const releaseLock = () => {
+      fetch(`/api/lock/research/${encodeURIComponent(humId)}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userName }),
+        keepalive: true,
+      }).catch(() => {
+        // Best effort
+      })
+    }
+
+    const handlePageHide = () => releaseLock()
+    window.addEventListener("pagehide", handlePageHide)
+
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide)
+      releaseLock()
+    }
+  }, [humId, userName])
+
+  // LockConflictDialog handlers
+  const handleGoBack = () => {
+    navigate({ to: "/" })
+  }
+
+  const handleReadOnly = () => {
+    setLockConflict(null)
+    setViewMode("readOnly")
+  }
+
+  const handleForceEdit = () => {
+    acquireLock.mutate(
+      { humId, userName, force: true },
+      {
+        onSuccess: () => {
+          setLockConflict(null)
+          setViewMode("editing")
+        },
+      },
+    )
+  }
+
+  const handleSwitchToEditing = () => {
+    acquireLock.mutate(
+      { humId, userName, force: true },
+      {
+        onSuccess: () => setViewMode("editing"),
+        onError: (err) => {
+          if (err instanceof LockConflictError) {
+            setLockConflict({
+              editingByName: err.lockInfo.editingByName,
+              editingAt: err.lockInfo.editingAt,
+            })
+          }
+        },
+      },
+    )
+  }
+
+  // Sync research data to atoms
   useEffect(() => {
     if (research) {
       setServer(research)
@@ -58,12 +175,17 @@ export const ResearchEditPage = () => {
     }
   }, [versions, setVersionsServer, setVersionsDraft])
 
+  // Cleanup atoms on unmount
   useEffect(() => () => {
     setServer(null)
     setDraft(null)
     setVersionsServer([])
     setVersionsDraft([])
-  }, [setServer, setDraft, setVersionsServer, setVersionsDraft])
+    setDatasetsServer({})
+    setDatasetsDraft({})
+    setFileModifiedAt(null)
+    setDatasetModifiedAts({})
+  }, [setServer, setDraft, setVersionsServer, setVersionsDraft, setDatasetsServer, setDatasetsDraft, setFileModifiedAt, setDatasetModifiedAts])
 
   // Navigation guard: in-app navigation (TanStack Router)
   useBlocker({
@@ -86,12 +208,24 @@ export const ResearchEditPage = () => {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [dirty])
 
+  // Optimistic lock conflict on save
+  const handleSaveConflict = () => {
+    setConflictDialogOpen(false)
+    // Invalidate queries to reload fresh data
+    saveMutation.reset()
+  }
+
   const handleSave = () => {
     if (!draft) return
     saveMutation.mutate(draft, {
-      onSuccess: (saved) => {
+      onSuccess: ({ data: saved }) => {
         setServer(saved)
         setDraft(structuredClone(saved))
+      },
+      onError: (err) => {
+        if (err instanceof ConflictError) {
+          setConflictDialogOpen(true)
+        }
       },
     })
     if (versionsDraft.length > 0) {
@@ -102,11 +236,29 @@ export const ResearchEditPage = () => {
         },
       })
     }
+
+    // Dirty datasets を並列保存
+    for (const [key, draftDs] of Object.entries(datasetsDraftVal)) {
+      if (!datasetsServerVal[key] || equal(datasetsServerVal[key], draftDs)) continue
+      datasetSaveMutation.mutate(draftDs, {
+        onSuccess: ({ data: saved }) => {
+          const savedKey = `${saved.datasetId}-${saved.version}`
+          setDatasetsServer((prev) => ({ ...prev, [savedKey]: saved }))
+          setDatasetsDraft((prev) => ({ ...prev, [savedKey]: structuredClone(saved) }))
+        },
+        onError: (err) => {
+          if (err instanceof ConflictError) {
+            setConflictDialogOpen(true)
+          }
+        },
+      })
+    }
   }
 
   const handleDiscardChanges = () => {
     if (server) setDraft(structuredClone(server))
     setVersionsDraft(structuredClone(versionsServer))
+    setDatasetsDraft(structuredClone(datasetsServerVal))
   }
 
   const handleVersionChange = (updated: ResearchVersion) => {
@@ -122,8 +274,9 @@ export const ResearchEditPage = () => {
   }
 
   const handleSetAllSections = (status: SectionCurationStatus) => {
+    const datasetKeys = Object.keys(sectionStatuses).filter((k) => k.startsWith("dataset:"))
     const allStatuses = Object.fromEntries(
-      RESEARCH_SECTION_IDS.map((id) => [id, status]),
+      [...RESEARCH_SECTION_IDS, ...datasetKeys].map((id) => [id, status]),
     ) as Record<string, SectionCurationStatus>
     updateSectionStatus.mutate(allStatuses)
   }
@@ -147,12 +300,37 @@ export const ResearchEditPage = () => {
   }
 
   const sectionStatuses = curationData?.sectionStatuses ?? {}
+  const isReadOnly = viewMode === "readOnly"
 
   return (
     <Box sx={{ height: "100%", overflow: "auto" }}>
+      {/* Lock conflict dialog */}
+      {lockConflict && (
+        <LockConflictDialog
+          open
+          editingByName={lockConflict.editingByName}
+          editingAt={lockConflict.editingAt}
+          onGoBack={handleGoBack}
+          onReadOnly={handleReadOnly}
+          onForceEdit={handleForceEdit}
+        />
+      )}
+
+      {/* Optimistic lock conflict dialog */}
+      <ConfirmDialog
+        open={conflictDialogOpen}
+        title="保存の競合"
+        confirmLabel="閉じる"
+        confirmColor="primary"
+        onConfirm={handleSaveConflict}
+        onCancel={handleSaveConflict}
+      >
+        他のユーザーがデータを更新しました。ページをリロードして最新のデータを読み込み直してください。
+      </ConfirmDialog>
+
       <Box sx={{ bgcolor: "background.default" }}>
         <Container sx={{ pt: SUBSECTION_GAP }}>
-          <Breadcrumbs sx={{ mb: SUBSECTION_GAP }} separator={<NavigateNextIcon sx={{ fontSize: "0.875rem" }} />}>
+          <Breadcrumbs sx={{ mb: SUBSECTION_GAP }} separator={<NavigateNextIcon sx={{ fontSize: INLINE_ICON_SIZE }} />}>
             <Link to="/" style={{ color: "inherit", textDecoration: "none" }}>
               <Typography variant="body2" sx={{ "&:hover": { textDecoration: "underline" } }}>
                 研究一覧
@@ -169,11 +347,14 @@ export const ResearchEditPage = () => {
                 versions={versionsDraft}
                 curationStatus={curationData?.status ?? "uncurated"}
                 dirty={dirty}
-                saving={saveMutation.isPending || saveVersionsMutation.isPending}
+                saving={saveMutation.isPending || saveVersionsMutation.isPending || datasetSaveMutation.isPending}
                 onSave={handleSave}
                 onDiscardChanges={handleDiscardChanges}
                 onSetAllSections={handleSetAllSections}
                 onVersionChange={handleVersionChange}
+                viewMode={viewMode === "pending" ? "editing" : viewMode}
+                editingByName={lockConflict?.editingByName}
+                onForceEdit={handleSwitchToEditing}
               />
             </Box>
           )}
@@ -189,6 +370,7 @@ export const ResearchEditPage = () => {
                   <ResearchForm
                     sectionStatuses={sectionStatuses}
                     onToggleSection={handleToggleSection}
+                    readOnly={isReadOnly}
                   />
                 }
                 datasetSection={draft && (
@@ -196,8 +378,9 @@ export const ResearchEditPage = () => {
                     humId={humId}
                     versions={versions ?? []}
                     latestVersionId={draft.latestVersion}
-                    sectionStatus={sectionStatuses.datasets ?? "uncurated"}
-                    onToggleStatus={() => handleToggleSection("datasets")}
+                    sectionStatuses={sectionStatuses}
+                    onToggleSection={handleToggleSection}
+                    readOnly={isReadOnly}
                   />
                 )}
                 humId={humId}
@@ -214,6 +397,7 @@ export const ResearchEditPage = () => {
                   <ResearchForm
                     sectionStatuses={sectionStatuses}
                     onToggleSection={handleToggleSection}
+                    readOnly={isReadOnly}
                   />
                 }
                 datasetSection={draft && (
@@ -221,8 +405,9 @@ export const ResearchEditPage = () => {
                     humId={humId}
                     versions={versions ?? []}
                     latestVersionId={draft.latestVersion}
-                    sectionStatus={sectionStatuses.datasets ?? "uncurated"}
-                    onToggleStatus={() => handleToggleSection("datasets")}
+                    sectionStatuses={sectionStatuses}
+                    onToggleSection={handleToggleSection}
+                    readOnly={isReadOnly}
                   />
                 )}
                 humId={humId}

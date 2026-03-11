@@ -1,6 +1,7 @@
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import OpenInNewIcon from "@mui/icons-material/OpenInNew"
+import Alert from "@mui/material/Alert"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Chip from "@mui/material/Chip"
@@ -27,7 +28,7 @@ import type { CurationStatus, SectionCurationStatus } from "@/schemas/editor-sta
 import type { Research } from "@/schemas/research"
 import type { ResearchVersion } from "@/schemas/research-version"
 import { versionsServerAtom } from "@/stores/research-edit"
-import { BUTTON_MIN_WIDTH_ACTION, FORM_LABEL_SX, MODIFIED_FIELD_BG, MODIFIED_FIELD_SX, MONOSPACE_ID_SX, SECTION_GAP, SUBSECTION_GAP } from "@/theme"
+import { BUTTON_MIN_WIDTH_ACTION, COMPACT_GAP, FIELD_GROUP_GAP, FORM_LABEL_SX, INLINE_GAP, INLINE_ICON_SIZE, MODIFIED_FIELD_BG, MODIFIED_FIELD_SX, MONOSPACE_ID_SX, SECTION_GAP, SUBSECTION_GAP } from "@/theme"
 
 interface BasicInfoSectionProps {
   research: Research
@@ -39,6 +40,9 @@ interface BasicInfoSectionProps {
   onDiscardChanges: () => void
   onSetAllSections: (status: SectionCurationStatus) => void
   onVersionChange: (updated: ResearchVersion) => void
+  viewMode: "editing" | "readOnly"
+  editingByName?: string | undefined
+  onForceEdit?: (() => void) | undefined
 }
 
 export const BasicInfoSection = ({
@@ -51,6 +55,9 @@ export const BasicInfoSection = ({
   onDiscardChanges,
   onSetAllSections,
   onVersionChange,
+  viewMode,
+  editingByName,
+  onForceEdit,
 }: BasicInfoSectionProps) => {
   const [expandedVersion, setExpandedVersion] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<"save" | "discard" | "uncurated" | "curated" | null>(null)
@@ -78,49 +85,75 @@ export const BasicInfoSection = ({
     setConfirmAction(null)
   }
 
+  const isReadOnly = viewMode === "readOnly"
+
   return (
     <Paper variant="outlined" sx={{ p: SUBSECTION_GAP, display: "flex", flexDirection: "column", gap: SECTION_GAP }}>
+      {/* Lock banner */}
+      {viewMode === "editing" && (
+        <Alert severity="info" sx={{ py: 0.5 }}>
+          あなたが編集中です
+        </Alert>
+      )}
+      {viewMode === "readOnly" && (
+        <Alert
+          severity="warning"
+          sx={{ py: 0.5 }}
+          action={
+            onForceEdit && (
+              <Button color="inherit" size="small" onClick={onForceEdit}>
+                編集を開始する
+              </Button>
+            )
+          }
+        >
+          {editingByName ? `${editingByName} さんが編集中のため閲覧のみです` : "閲覧モードです"}
+        </Alert>
+      )}
+
       {/* Header */}
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: INLINE_GAP }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: FIELD_GROUP_GAP }}>
           <SectionHeader title={research.humId} component="h1" />
           <CurationStatusChip status={curationStatus} />
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, "& .MuiButton-root": { minWidth: BUTTON_MIN_WIDTH_ACTION } }}>
-          <Button
-            size="small"
-            variant="outlined"
-            color="success"
-            onClick={() => setConfirmAction("curated")}
-          >
-            全て Curated
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            color="warning"
-            onClick={() => setConfirmAction("uncurated")}
-          >
-            全て Uncurated
-          </Button>
-          <Button
-            size="small"
-            variant="contained"
-            color="primary"
-            disabled={!dirty || saving}
-            onClick={() => setConfirmAction("save")}
-          >
-            {saving ? "保存中…" : "保存"}
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            disabled={!dirty}
-            onClick={() => setConfirmAction("discard")}
-          >
-            変更を破棄
-          </Button>
-        </Box>
+        {!isReadOnly && (
+          <Box sx={{ display: "flex", alignItems: "center", gap: INLINE_GAP, "& .MuiButton-root": { minWidth: BUTTON_MIN_WIDTH_ACTION } }}>
+            <Button
+              size="small"
+              variant="outlined"
+              color="success"
+              onClick={() => setConfirmAction("curated")}
+            >
+              全て Curated
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              color="warning"
+              onClick={() => setConfirmAction("uncurated")}
+            >
+              全て Uncurated
+            </Button>
+            <Button
+              size="small"
+              variant="contained"
+              color="primary"
+              disabled={!dirty || saving}
+              onClick={() => setConfirmAction("save")}
+            >
+              {saving ? "保存中…" : "保存"}
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              disabled={!dirty}
+              onClick={() => setConfirmAction("discard")}
+            >
+              変更を破棄
+            </Button>
+          </Box>
+        )}
       </Box>
 
       <ConfirmDialog
@@ -168,7 +201,7 @@ export const BasicInfoSection = ({
       </ConfirmDialog>
 
       {/* Metadata */}
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1.5 }}>
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: FIELD_GROUP_GAP }}>
         <MetaField label="URL (JA)" value={research.url.ja} isLink />
         <MetaField label="Published" value={research.datePublished} />
         <MetaField label="URL (EN)" value={research.url.en} isLink />
@@ -199,7 +232,7 @@ const MetaField = ({ label, value, isLink }: {
   isLink?: boolean | undefined
 }) => (
   <Box>
-    <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: 0.25 }}>
+    <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: COMPACT_GAP }}>
       {label}
     </Typography>
     {isLink && value ? (
@@ -208,10 +241,10 @@ const MetaField = ({ label, value, isLink }: {
         target="_blank"
         rel="noopener noreferrer"
         variant="body1"
-        sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}
+        sx={{ display: "inline-flex", alignItems: "center", gap: COMPACT_GAP }}
       >
         {value}
-        <OpenInNewIcon sx={{ fontSize: "0.875rem" }} />
+        <OpenInNewIcon sx={{ fontSize: INLINE_ICON_SIZE }} />
       </Link>
     ) : (
       <Typography variant="body1">{value ?? "-"}</Typography>
@@ -294,7 +327,7 @@ const ReleasesTable = ({ versions, versionsServer, expandedVersion, onToggleExpa
                 >
                   <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                     <Box
-                      sx={{ py: 1.5, px: 2, display: "flex", flexDirection: "column", gap: 1.5 }}
+                      sx={{ py: FIELD_GROUP_GAP, px: SUBSECTION_GAP, display: "flex", flexDirection: "column", gap: FIELD_GROUP_GAP }}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <TextField
@@ -342,7 +375,7 @@ const ReleasesTable = ({ versions, versionsServer, expandedVersion, onToggleExpa
                           Datasets
                         </Typography>
                         {v.datasets.length > 0 ? (
-                          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                          <Box sx={{ display: "flex", flexWrap: "wrap", gap: COMPACT_GAP }}>
                             {v.datasets.map((ds) => (
                               <Chip
                                 key={`${ds.datasetId}-${ds.version}`}

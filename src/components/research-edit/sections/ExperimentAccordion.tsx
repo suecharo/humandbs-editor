@@ -18,7 +18,7 @@ import { useState } from "react"
 import { SectionHeader } from "@/components/SectionHeader"
 import type { Experiment, SearchableExperimentFields } from "@/schemas/dataset"
 import { createDefaultSearchableFields } from "@/schemas/defaults"
-import { FIELD_GROUP_GAP, FORM_LABEL_SX, SUBSECTION_GAP } from "@/theme"
+import { COMPACT_GAP, FIELD_GROUP_GAP, FORM_LABEL_SX, INLINE_GAP, SUBSECTION_GAP } from "@/theme"
 
 import { SearchableFieldsEditor } from "./SearchableFieldsEditor"
 
@@ -98,9 +98,9 @@ export const ExperimentAccordion = ({
   return (
     <Accordion>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: INLINE_GAP, width: "100%" }}>
           <Typography sx={{ flexGrow: 1 }}>{experimentLabel(experiment, index)}</Typography>
-          <Box sx={{ display: "flex", gap: 0.5 }} onClick={(e) => e.stopPropagation()}>
+          <Box sx={{ display: "flex", gap: COMPACT_GAP }} onClick={(e) => e.stopPropagation()}>
             <Tooltip title="Move Up">
               <span>
                 <IconButton size="small" onClick={onMoveUp} disabled={index === 0}>
@@ -126,14 +126,14 @@ export const ExperimentAccordion = ({
       <AccordionDetails>
         {/* Data */}
         <SectionHeader title="Data" size="small" />
-        <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP, mt: 1, mb: SUBSECTION_GAP }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: SUBSECTION_GAP, mt: SUBSECTION_GAP }}>
           {dataKeys.map((key) => (
             <Box key={key}>
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 0.5 }}>
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
                 <Typography variant="body2" sx={FORM_LABEL_SX}>{key}</Typography>
                 <Tooltip title="Delete key">
                   <IconButton size="small" onClick={() => handleRemoveDataKey(key)} color="error">
-                    <DeleteOutlined sx={{ fontSize: "1rem" }} />
+                    <DeleteOutlined fontSize="small" />
                   </IconButton>
                 </Tooltip>
               </Box>
@@ -159,7 +159,7 @@ export const ExperimentAccordion = ({
               </Box>
             </Box>
           ))}
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+          <Box sx={{ display: "flex", gap: INLINE_GAP, alignItems: "center" }}>
             <TextField
               size="small"
               label="New key name"
@@ -187,7 +187,7 @@ export const ExperimentAccordion = ({
 
         {/* Searchable fields */}
         <SectionHeader title="Searchable Fields" size="small" />
-        <Box sx={{ mt: 1 }}>
+        <Box sx={{ mt: SUBSECTION_GAP }}>
           {experiment.searchable ? (
             <SearchableFieldsEditor
               fields={experiment.searchable}

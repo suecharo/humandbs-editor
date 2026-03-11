@@ -48,6 +48,8 @@ export const MONOSPACE_SMALL_SX = {
 export const SECTION_GAP = 3
 export const SUBSECTION_GAP = 2
 export const FIELD_GROUP_GAP = 1.5
+export const INLINE_GAP = 1
+export const COMPACT_GAP = 0.5
 
 // Control sizing
 
@@ -56,6 +58,7 @@ export const TOGGLE_BUTTON_BORDER_RADIUS = "16px"
 export const DIALOG_MIN_WIDTH = 360
 export const BUTTON_MIN_WIDTH_ACTION = 140
 export const EXPAND_ICON_SIZE = "1.125rem"
+export const INLINE_ICON_SIZE = "0.875rem"
 
 // Heading tokens
 

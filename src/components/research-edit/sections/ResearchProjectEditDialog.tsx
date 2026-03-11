@@ -9,7 +9,7 @@ import equal from "fast-deep-equal"
 
 import { PanelDialog } from "@/components/common/PanelDialog"
 import type { ResearchProject } from "@/schemas/research"
-import { DIALOG_PADDING, DIALOG_TITLE_SX, FIELD_GROUP_GAP, FORM_LABEL_SX, MODIFIED_FIELD_SX, SUBSECTION_GAP } from "@/theme"
+import { COMPACT_GAP, DIALOG_PADDING, DIALOG_TITLE_SX, FIELD_GROUP_GAP, FORM_LABEL_SX, MODIFIED_FIELD_SX, SUBSECTION_GAP } from "@/theme"
 
 import { BilingualTextValueField } from "../fields/BilingualTextValueField"
 
@@ -43,7 +43,7 @@ export const ResearchProjectEditDialog = ({
           } : undefined}
         />
         <Box>
-          <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: 1 }}>
+          <Typography variant="body2" sx={{ ...FORM_LABEL_SX, mb: COMPACT_GAP }}>
             URL
           </Typography>
           <Box sx={{ display: "flex", flexDirection: "column", gap: FIELD_GROUP_GAP }}>

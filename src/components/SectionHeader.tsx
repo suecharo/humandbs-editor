@@ -10,10 +10,11 @@ import {
   MODIFIED_INDICATOR_COLOR,
 } from "../theme"
 
-export const SectionHeader = ({ title, subtitle, action, component = "h2", size = "default", color, modified = false }: {
+export const SectionHeader = ({ title, subtitle, action, titleAction, component = "h2", size = "default", color, modified = false }: {
   title: string
   subtitle?: string | undefined
   action?: ReactNode | undefined
+  titleAction?: ReactNode | undefined
   component?: ElementType | undefined
   size?: "default" | "small" | undefined
   color?: string | undefined
@@ -50,6 +51,7 @@ export const SectionHeader = ({ title, subtitle, action, component = "h2", size 
             </Typography>
           ) : null}
         </Typography>
+        {titleAction ?? null}
         {modified ? (
           <Chip
             label="Modified"

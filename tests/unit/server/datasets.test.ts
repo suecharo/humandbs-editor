@@ -10,6 +10,7 @@ const mockAccess = vi.fn()
 const mockUnlink = vi.fn()
 const mockMkdir = vi.fn()
 const mockReaddir = vi.fn()
+const mockStat = vi.fn()
 
 vi.mock("node:fs/promises", () => ({
   default: {
@@ -19,6 +20,7 @@ vi.mock("node:fs/promises", () => ({
     unlink: (...args: unknown[]) => mockUnlink(...args),
     mkdir: (...args: unknown[]) => mockMkdir(...args),
     readdir: (...args: unknown[]) => mockReaddir(...args),
+    stat: (...args: unknown[]) => mockStat(...args),
   },
   readFile: (...args: unknown[]) => mockReadFile(...args),
   writeFile: (...args: unknown[]) => mockWriteFile(...args),
@@ -26,6 +28,7 @@ vi.mock("node:fs/promises", () => ({
   unlink: (...args: unknown[]) => mockUnlink(...args),
   mkdir: (...args: unknown[]) => mockMkdir(...args),
   readdir: (...args: unknown[]) => mockReaddir(...args),
+  stat: (...args: unknown[]) => mockStat(...args),
 }))
 
 const mockDataset = (datasetId: string, version: string) => ({
@@ -179,17 +182,20 @@ describe("GET /api/datasets/:datasetKey", () => {
   it("returns dataset by composite key", async () => {
     const dataset = mockDataset("JGAD000001", "v1")
     mockReadFile.mockResolvedValue(JSON.stringify(dataset))
+    mockStat.mockResolvedValue({ mtime: new Date("2024-06-01T00:00:00Z") })
 
     const handler = getHandler("/:datasetKey")
     const req = { params: { datasetKey: "JGAD000001-v1" } } as unknown as Request
     const json = vi.fn()
-    const res = { json, status: vi.fn().mockReturnThis() } as unknown as Response
+    const setHeader = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis(), setHeader } as unknown as Response
 
     await handler(req, res, vi.fn())
 
     expect(json).toHaveBeenCalledTimes(1)
     const result = json.mock.calls[0]![0] as { datasetId: string }
     expect(result.datasetId).toBe("JGAD000001")
+    expect(setHeader).toHaveBeenCalledWith("X-Modified-At", "2024-06-01T00:00:00.000Z")
   })
 
   it("returns 400 for invalid dataset key", async () => {
@@ -221,11 +227,13 @@ describe("GET /api/datasets/:datasetKey", () => {
   it("handles composite key with hyphens in datasetId", async () => {
     const dataset = mockDataset("E-GEAD-397", "v1")
     mockReadFile.mockResolvedValue(JSON.stringify(dataset))
+    mockStat.mockResolvedValue({ mtime: new Date("2024-06-01T00:00:00Z") })
 
     const handler = getHandler("/:datasetKey")
     const req = { params: { datasetKey: "E-GEAD-397-v1" } } as unknown as Request
     const json = vi.fn()
-    const res = { json, status: vi.fn().mockReturnThis() } as unknown as Response
+    const setHeader = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis(), setHeader } as unknown as Response
 
     await handler(req, res, vi.fn())
 
@@ -245,13 +253,15 @@ describe("PUT /api/datasets/:datasetKey", () => {
 
   it("updates dataset and returns saved data", async () => {
     const dataset = mockDataset("JGAD000001", "v1")
-    mockAccess.mockResolvedValue(undefined)
+    const mtime = new Date("2024-06-01T00:00:00Z")
+    mockStat.mockResolvedValue({ mtime })
     mockWriteFile.mockResolvedValue(undefined)
 
     const handler = getHandler("/:datasetKey", "put")
-    const req = { params: { datasetKey: "JGAD000001-v1" }, body: dataset } as unknown as Request
+    const req = { params: { datasetKey: "JGAD000001-v1" }, body: dataset, headers: {} } as unknown as Request
     const json = vi.fn()
-    const res = { json, status: vi.fn().mockReturnThis() } as unknown as Response
+    const setHeader = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis(), setHeader } as unknown as Response
 
     await handler(req, res, vi.fn())
 
@@ -261,10 +271,10 @@ describe("PUT /api/datasets/:datasetKey", () => {
 
   it("returns 400 when datasetId does not match URL", async () => {
     const dataset = mockDataset("JGAD000002", "v1")
-    mockAccess.mockResolvedValue(undefined)
+    mockStat.mockResolvedValue({ mtime: new Date() })
 
     const handler = getHandler("/:datasetKey", "put")
-    const req = { params: { datasetKey: "JGAD000001-v1" }, body: dataset } as unknown as Request
+    const req = { params: { datasetKey: "JGAD000001-v1" }, body: dataset, headers: {} } as unknown as Request
     const json = vi.fn()
     const status = vi.fn().mockReturnThis()
     const res = { json, status } as unknown as Response
@@ -276,10 +286,10 @@ describe("PUT /api/datasets/:datasetKey", () => {
 
   it("returns 404 when dataset does not exist", async () => {
     const dataset = mockDataset("JGAD999999", "v1")
-    mockAccess.mockRejectedValue(new Error("ENOENT"))
+    mockStat.mockRejectedValue(new Error("ENOENT"))
 
     const handler = getHandler("/:datasetKey", "put")
-    const req = { params: { datasetKey: "JGAD999999-v1" }, body: dataset } as unknown as Request
+    const req = { params: { datasetKey: "JGAD999999-v1" }, body: dataset, headers: {} } as unknown as Request
     const json = vi.fn()
     const status = vi.fn().mockReturnThis()
     const res = { json, status } as unknown as Response
@@ -291,7 +301,7 @@ describe("PUT /api/datasets/:datasetKey", () => {
 
   it("returns 400 for invalid request body", async () => {
     const handler = getHandler("/:datasetKey", "put")
-    const req = { params: { datasetKey: "JGAD000001-v1" }, body: { datasetId: "JGAD000001" } } as unknown as Request
+    const req = { params: { datasetKey: "JGAD000001-v1" }, body: { datasetId: "JGAD000001" }, headers: {} } as unknown as Request
     const json = vi.fn()
     const status = vi.fn().mockReturnThis()
     const res = { json, status } as unknown as Response
@@ -299,6 +309,51 @@ describe("PUT /api/datasets/:datasetKey", () => {
     await handler(req, res, vi.fn())
 
     expect(status).toHaveBeenCalledWith(400)
+  })
+
+  it("returns 409 when X-Base-Modified-At is older than file mtime", async () => {
+    const dataset = mockDataset("JGAD000001", "v1")
+    const fileMtime = new Date("2024-06-02T00:00:00Z")
+    const baseMtime = new Date("2024-06-01T00:00:00Z")
+    mockStat.mockResolvedValue({ mtime: fileMtime })
+
+    const handler = getHandler("/:datasetKey", "put")
+    const req = {
+      params: { datasetKey: "JGAD000001-v1" },
+      body: dataset,
+      headers: { "x-base-modified-at": baseMtime.toISOString() },
+    } as unknown as Request
+    const json = vi.fn()
+    const status = vi.fn().mockReturnThis()
+    const res = { json, status } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(status).toHaveBeenCalledWith(409)
+    const result = json.mock.calls[0]![0] as { error: string }
+    expect(result.error).toBe("File has been modified by another user")
+  })
+
+  it("allows PUT without X-Base-Modified-At for backward compatibility", async () => {
+    const dataset = mockDataset("JGAD000001", "v1")
+    const mtime = new Date("2024-06-01T00:00:00Z")
+    mockStat.mockResolvedValue({ mtime })
+    mockWriteFile.mockResolvedValue(undefined)
+
+    const handler = getHandler("/:datasetKey", "put")
+    const req = {
+      params: { datasetKey: "JGAD000001-v1" },
+      body: dataset,
+      headers: {},
+    } as unknown as Request
+    const json = vi.fn()
+    const setHeader = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis(), setHeader } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    expect(json).toHaveBeenCalledTimes(1)
+    expect(mockWriteFile).toHaveBeenCalled()
   })
 })
 

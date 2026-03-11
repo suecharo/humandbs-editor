@@ -16,9 +16,10 @@ import { TitleSection } from "./sections/TitleSection"
 interface ResearchFormProps {
   sectionStatuses: Record<string, SectionCurationStatus>
   onToggleSection: (sectionId: string) => void
+  readOnly?: boolean
 }
 
-export const ResearchForm = ({ sectionStatuses, onToggleSection }: ResearchFormProps) => {
+export const ResearchForm = ({ sectionStatuses, onToggleSection, readOnly: _readOnly }: ResearchFormProps) => {
   const [draft, setDraft] = useAtom(researchDraftAtom)
   const server = useAtomValue(researchServerAtom)
 

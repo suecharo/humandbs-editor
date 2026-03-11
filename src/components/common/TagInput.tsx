@@ -1,5 +1,6 @@
 import Autocomplete from "@mui/material/Autocomplete"
 import Chip from "@mui/material/Chip"
+import type { SxProps, Theme } from "@mui/material/styles"
 import TextField from "@mui/material/TextField"
 
 interface TagInputProps {
@@ -7,9 +8,10 @@ interface TagInputProps {
   value: string[]
   onChange: (value: string[]) => void
   options?: string[]
+  sx?: SxProps<Theme> | undefined
 }
 
-export const TagInput = ({ label, value, onChange, options = [] }: TagInputProps) => (
+export const TagInput = ({ label, value, onChange, options = [], sx }: TagInputProps) => (
   <Autocomplete
     multiple
     freeSolo
@@ -26,5 +28,6 @@ export const TagInput = ({ label, value, onChange, options = [] }: TagInputProps
     renderInput={(params) => (
       <TextField {...params} label={label} />
     )}
+    sx={sx}
   />
 )

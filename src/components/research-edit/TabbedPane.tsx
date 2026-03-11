@@ -6,7 +6,7 @@ import Tabs from "@mui/material/Tabs"
 import Typography from "@mui/material/Typography"
 import { useState } from "react"
 
-import { TAB_BAR_SX, TAB_CONTENT_PADDING } from "../../theme"
+import { SUBSECTION_GAP, TAB_BAR_SX, TAB_CONTENT_PADDING } from "../../theme"
 import { TabPanel, tabA11yProps } from "../TabPanel"
 
 interface TabbedPaneProps {
@@ -20,7 +20,7 @@ interface TabbedPaneProps {
 }
 
 const OriginalFallback = ({ url }: { url: string }) => (
-  <Box sx={{ p: TAB_CONTENT_PADDING, display: "flex", flexDirection: "column", gap: 2 }}>
+  <Box sx={{ p: TAB_CONTENT_PADDING, display: "flex", flexDirection: "column", gap: SUBSECTION_GAP }}>
     <Typography color="text.secondary">
       iframe での表示ができません。
     </Typography>
