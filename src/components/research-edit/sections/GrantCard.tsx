@@ -1,13 +1,10 @@
-import Box from "@mui/material/Box"
-import Paper from "@mui/material/Paper"
 import equal from "fast-deep-equal"
 
+import { ActionCard } from "@/components/common/ActionCard"
 import { BilingualCardContent, type BilingualRow } from "@/components/common/BilingualCardContent"
-import { CardActionButtons } from "@/components/common/CardActionButtons"
 import { CollapsibleChips } from "@/components/common/CollapsibleChips"
 import type { CardActions } from "@/components/common/ItemCardList"
 import type { Grant } from "@/schemas/research"
-import { COMPACT_GAP } from "@/theme"
 
 interface GrantCardProps {
   grant: Grant
@@ -36,24 +33,9 @@ export const GrantCard = ({ grant, actions, serverGrant }: GrantCardProps) => {
   ]
 
   return (
-    <Paper variant="outlined" sx={{ p: 2 }}>
-      <Box sx={{ display: "flex", alignItems: "flex-start", gap: COMPACT_GAP }}>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <BilingualCardContent rows={rows} />
-          <CollapsibleChips ids={grant.id} />
-        </Box>
-        <CardActionButtons
-          label="grant"
-          index={actions.index}
-          isFirst={actions.isFirst}
-          isLast={actions.isLast}
-          modified={modified}
-          onEdit={actions.onEdit}
-          onRemove={actions.onRemove}
-          onMoveUp={actions.onMoveUp}
-          onMoveDown={actions.onMoveDown}
-        />
-      </Box>
-    </Paper>
+    <ActionCard label="grant" actions={actions} modified={modified}>
+      <BilingualCardContent rows={rows} />
+      <CollapsibleChips ids={grant.id} />
+    </ActionCard>
   )
 }

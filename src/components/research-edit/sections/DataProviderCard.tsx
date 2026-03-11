@@ -1,13 +1,11 @@
-import Box from "@mui/material/Box"
-import Paper from "@mui/material/Paper"
 import Typography from "@mui/material/Typography"
 import equal from "fast-deep-equal"
 
+import { ActionCard } from "@/components/common/ActionCard"
 import { BilingualCardContent, type BilingualRow } from "@/components/common/BilingualCardContent"
-import { CardActionButtons } from "@/components/common/CardActionButtons"
 import type { CardActions } from "@/components/common/ItemCardList"
 import type { Person } from "@/schemas/research"
-import { COMPACT_GAP, MODIFIED_TEXT_SX } from "@/theme"
+import { MODIFIED_TEXT_SX } from "@/theme"
 
 interface DataProviderCardProps {
   person: Person
@@ -44,32 +42,17 @@ export const DataProviderCard = ({ person, actions, serverPerson }: DataProvider
   const metaModified = serverPerson ? metaLine !== (serverMetaLine ?? "") : false
 
   return (
-    <Paper variant="outlined" sx={{ p: 2 }}>
-      <Box sx={{ display: "flex", alignItems: "flex-start", gap: COMPACT_GAP }}>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <BilingualCardContent rows={rows} />
-          {metaLine && (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: 0.5, ...(metaModified ? MODIFIED_TEXT_SX : undefined) }}
-            >
-              {metaLine}
-            </Typography>
-          )}
-        </Box>
-        <CardActionButtons
-          label="provider"
-          index={actions.index}
-          isFirst={actions.isFirst}
-          isLast={actions.isLast}
-          modified={modified}
-          onEdit={actions.onEdit}
-          onRemove={actions.onRemove}
-          onMoveUp={actions.onMoveUp}
-          onMoveDown={actions.onMoveDown}
-        />
-      </Box>
-    </Paper>
+    <ActionCard label="provider" actions={actions} modified={modified}>
+      <BilingualCardContent rows={rows} />
+      {metaLine && (
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mt: 0.5, ...(metaModified ? MODIFIED_TEXT_SX : undefined) }}
+        >
+          {metaLine}
+        </Typography>
+      )}
+    </ActionCard>
   )
 }

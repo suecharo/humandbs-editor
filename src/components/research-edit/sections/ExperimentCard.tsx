@@ -28,7 +28,7 @@ import { ConfirmDialog } from "@/components/common/ConfirmDialog"
 import moldataHeaders from "@/data/moldata-headers.json"
 import type { Experiment, SearchableExperimentFields } from "@/schemas/dataset"
 import { createDefaultSearchableFields } from "@/schemas/defaults"
-import { COMPACT_GAP, INLINE_GAP, MODIFIED_FIELD_BG, MODIFIED_INDICATOR_COLOR, SUBSECTION_GAP, TAB_CONTENT_PADDING, TOGGLE_BUTTON_BORDER_RADIUS } from "@/theme"
+import { COMPACT_GAP, INLINE_GAP, MODIFIED_CHIP_SX, MODIFIED_FIELD_BG, SUBSECTION_GAP, TAB_CONTENT_PADDING, TOGGLE_BUTTON_BORDER_RADIUS } from "@/theme"
 
 import { SearchableFieldsEditor } from "./SearchableFieldsEditor"
 
@@ -154,13 +154,7 @@ export const ExperimentCard = ({
           {experimentLabel(experiment, index)}
         </Typography>
         {experimentModified && (
-          <Chip label="Modified" size="small" sx={{
-            height: 20,
-            fontSize: "0.6875rem",
-            fontWeight: 600,
-            bgcolor: MODIFIED_INDICATOR_COLOR,
-            color: "#fff",
-          }} />
+          <Chip label="Modified" size="small" sx={MODIFIED_CHIP_SX} />
         )}
         <Box sx={{ display: "flex", gap: COMPACT_GAP }}>
           <Tooltip title="Move Up">

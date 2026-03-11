@@ -36,9 +36,6 @@ export const dirtyAtom = atom((get) => {
   return researchDirty || versionsDirty || datasetsDirty
 })
 
-/** @deprecated Use dirtyAtom instead */
-export const researchDirtyAtom = dirtyAtom
-
 export const computeModifiedPaths = (server: Research, draft: Research): Set<string> => {
   const paths = new Set<string>()
 

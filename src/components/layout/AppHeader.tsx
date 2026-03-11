@@ -19,7 +19,7 @@ import { type ElementType, useState } from "react"
 
 import { userNameAtom } from "@/stores/user"
 
-import { DIALOG_MIN_WIDTH, DIALOG_PADDING, HEADER_BG, HEADER_HEIGHT, NAV_LINK_COLOR, NAV_LINK_HOVER_COLOR } from "../../theme"
+import { DIALOG_MIN_WIDTH, DIALOG_PADDING, DIALOG_TITLE_SX, HEADER_BG, HEADER_HEIGHT, NAV_LINK_COLOR, NAV_LINK_HOVER_COLOR } from "../../theme"
 
 const navLinkSx = {
   color: NAV_LINK_COLOR,
@@ -120,7 +120,7 @@ export const AppHeader = () => {
         onClose={() => setEditOpen(false)}
         sx={{ "& .MuiDialog-paper": { minWidth: DIALOG_MIN_WIDTH } }}
       >
-        <DialogTitle>ユーザー名の変更</DialogTitle>
+        <DialogTitle sx={DIALOG_TITLE_SX}>ユーザー名の変更</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus

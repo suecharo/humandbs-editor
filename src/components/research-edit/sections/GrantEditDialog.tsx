@@ -1,13 +1,11 @@
 import Autocomplete from "@mui/material/Autocomplete"
 import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
 import Chip from "@mui/material/Chip"
-import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
 import TextField from "@mui/material/TextField"
-import equal from "fast-deep-equal"
 
+import { EditDialogFooter } from "@/components/common/EditDialogFooter"
 import { PanelDialog } from "@/components/common/PanelDialog"
 import type { Grant } from "@/schemas/research"
 import { DIALOG_PADDING, DIALOG_TITLE_SX, SUBSECTION_GAP } from "@/theme"
@@ -79,16 +77,6 @@ export const GrantEditDialog = ({
         />
       </Box>
     </DialogContent>
-    <DialogActions sx={{ p: DIALOG_PADDING, justifyContent: "space-between" }}>
-      <Button
-        variant="outlined"
-        color="secondary"
-        disabled={!serverGrant || equal(grant, serverGrant)}
-        onClick={() => { if (serverGrant) onChange(serverGrant) }}
-      >
-        変更を破棄
-      </Button>
-      <Button variant="outlined" onClick={onClose}>閉じる</Button>
-    </DialogActions>
+    <EditDialogFooter item={grant} serverItem={serverGrant} onChange={onChange} onClose={onClose} />
   </PanelDialog>
 )

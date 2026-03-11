@@ -7,7 +7,7 @@ import {
   HEADING_BORDER_LARGE,
   HEADING_BORDER_SMALL,
   HEADING_PL,
-  MODIFIED_INDICATOR_COLOR,
+  MODIFIED_CHIP_SX,
 } from "../theme"
 
 export const SectionHeader = ({ title, subtitle, action, titleAction, component = "h2", size = "default", color, modified = false }: {
@@ -53,17 +53,7 @@ export const SectionHeader = ({ title, subtitle, action, titleAction, component 
         </Typography>
         {titleAction ?? null}
         {modified ? (
-          <Chip
-            label="Modified"
-            size="small"
-            sx={{
-              height: 20,
-              fontSize: "0.6875rem",
-              fontWeight: 600,
-              bgcolor: MODIFIED_INDICATOR_COLOR,
-              color: "#fff",
-            }}
-          />
+          <Chip label="Modified" size="small" sx={MODIFIED_CHIP_SX} />
         ) : null}
       </Box>
       {action ?? null}

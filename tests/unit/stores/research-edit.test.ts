@@ -3,7 +3,7 @@ import { describe, it, expect } from "vitest"
 
 import type { Research } from "@/schemas/research"
 
-import { researchDirtyAtom, researchDraftAtom, researchServerAtom } from "../../../src/stores/research-edit"
+import { dirtyAtom, researchDraftAtom, researchServerAtom } from "../../../src/stores/research-edit"
 
 const makeResearch = (overrides: Partial<Research> = {}): Research => ({
   humId: "hum0001",
@@ -27,25 +27,25 @@ const makeResearch = (overrides: Partial<Research> = {}): Research => ({
   ...overrides,
 })
 
-describe("researchDirtyAtom", () => {
+describe("dirtyAtom", () => {
   it("returns false when both server and draft are null", () => {
     const store = createStore()
 
-    expect(store.get(researchDirtyAtom)).toBe(false)
+    expect(store.get(dirtyAtom)).toBe(false)
   })
 
   it("returns false when server is null", () => {
     const store = createStore()
     store.set(researchDraftAtom, makeResearch())
 
-    expect(store.get(researchDirtyAtom)).toBe(false)
+    expect(store.get(dirtyAtom)).toBe(false)
   })
 
   it("returns false when draft is null", () => {
     const store = createStore()
     store.set(researchServerAtom, makeResearch())
 
-    expect(store.get(researchDirtyAtom)).toBe(false)
+    expect(store.get(dirtyAtom)).toBe(false)
   })
 
   it("returns false when server and draft are equal", () => {
@@ -54,7 +54,7 @@ describe("researchDirtyAtom", () => {
     store.set(researchServerAtom, research)
     store.set(researchDraftAtom, structuredClone(research))
 
-    expect(store.get(researchDirtyAtom)).toBe(false)
+    expect(store.get(dirtyAtom)).toBe(false)
   })
 
   it("returns true when draft title differs from server", () => {
@@ -64,7 +64,7 @@ describe("researchDirtyAtom", () => {
     store.set(researchServerAtom, server)
     store.set(researchDraftAtom, draft)
 
-    expect(store.get(researchDirtyAtom)).toBe(true)
+    expect(store.get(dirtyAtom)).toBe(true)
   })
 
   it("returns true when draft has extra array item", () => {
@@ -80,6 +80,6 @@ describe("researchDirtyAtom", () => {
     store.set(researchServerAtom, server)
     store.set(researchDraftAtom, draft)
 
-    expect(store.get(researchDirtyAtom)).toBe(true)
+    expect(store.get(dirtyAtom)).toBe(true)
   })
 })

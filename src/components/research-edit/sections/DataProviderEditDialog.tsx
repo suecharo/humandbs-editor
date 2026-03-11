@@ -1,11 +1,9 @@
 import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
-import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
 import TextField from "@mui/material/TextField"
-import equal from "fast-deep-equal"
 
+import { EditDialogFooter } from "@/components/common/EditDialogFooter"
 import { OrcidAutocomplete } from "@/components/common/OrcidAutocomplete"
 import { PanelDialog } from "@/components/common/PanelDialog"
 import type { OrcidSearchResult } from "@/hooks/use-orcid-search"
@@ -98,17 +96,7 @@ export const DataProviderEditDialog = ({
           )}
         </Box>
       </DialogContent>
-      <DialogActions sx={{ p: DIALOG_PADDING, justifyContent: "space-between" }}>
-        <Button
-          variant="outlined"
-          color="secondary"
-          disabled={!serverPerson || equal(person, serverPerson)}
-          onClick={() => { if (serverPerson) onChange(serverPerson) }}
-        >
-          変更を破棄
-        </Button>
-        <Button variant="outlined" onClick={onClose}>閉じる</Button>
-      </DialogActions>
+      <EditDialogFooter item={person} serverItem={serverPerson} onChange={onChange} onClose={onClose} />
     </PanelDialog>
   )
 }

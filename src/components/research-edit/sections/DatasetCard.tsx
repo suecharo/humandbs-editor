@@ -26,7 +26,7 @@ import type { Dataset, Experiment } from "@/schemas/dataset"
 import { createDefaultExperiment } from "@/schemas/defaults"
 import type { SectionCurationStatus } from "@/schemas/editor-state"
 import { datasetsDraftAtom, datasetsServerAtom } from "@/stores/research-edit"
-import { COMPACT_GAP, FIELD_GROUP_GAP, FORM_LABEL_SX, INLINE_GAP, MODIFIED_FIELD_SX, MODIFIED_INDICATOR_COLOR, MONOSPACE_ID_SX, SUBSECTION_GAP } from "@/theme"
+import { COMPACT_GAP, FIELD_GROUP_GAP, FORM_LABEL_SX, INLINE_GAP, MODIFIED_CHIP_SX, MODIFIED_FIELD_SX, MONOSPACE_ID_SX, SUBSECTION_GAP } from "@/theme"
 
 import { ExperimentCard } from "./ExperimentCard"
 
@@ -109,7 +109,7 @@ export const DatasetCard = ({ datasetKey, datasetId, version, isLoading, curatio
   }
 
   return (
-    <Paper variant="outlined" sx={{ p: 2 }}>
+    <Paper variant="outlined" sx={{ p: SUBSECTION_GAP }}>
       {/* Header: ID + version + release date + actions */}
       <Box sx={{ display: "flex", alignItems: "center", gap: INLINE_GAP, mb: SUBSECTION_GAP }}>
         <Typography variant="body2" fontWeight={600} sx={MONOSPACE_ID_SX}>
@@ -123,13 +123,7 @@ export const DatasetCard = ({ datasetKey, datasetId, version, isLoading, curatio
         )}
         <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: INLINE_GAP }}>
           {isDirty && (
-            <Chip label="Modified" size="small" sx={{
-              height: 20,
-              fontSize: "0.6875rem",
-              fontWeight: 600,
-              bgcolor: MODIFIED_INDICATOR_COLOR,
-              color: "#fff",
-            }} />
+            <Chip label="Modified" size="small" sx={MODIFIED_CHIP_SX} />
           )}
           <Button size="small" variant="outlined" disabled={!isDirty} onClick={handleDiscard}>
             破棄

@@ -43,13 +43,3 @@ export const useAcquireLock = () =>
     },
   })
 
-export const useReleaseLock = () =>
-  useMutation({
-    mutationFn: async ({ humId, userName }: { humId: string; userName: string }) => {
-      await fetch(`/api/lock/research/${encodeURIComponent(humId)}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userName }),
-      })
-    },
-  })

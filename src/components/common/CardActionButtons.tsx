@@ -7,7 +7,7 @@ import IconButton from "@mui/material/IconButton"
 import Stack from "@mui/material/Stack"
 import Tooltip from "@mui/material/Tooltip"
 
-import { MODIFIED_INDICATOR_COLOR } from "@/theme"
+import { EXPAND_ICON_SIZE, MODIFIED_CHIP_COMPACT_SX } from "@/theme"
 
 export interface CardActionButtonsProps {
   label: string
@@ -34,22 +34,11 @@ export const CardActionButtons = ({
 }: CardActionButtonsProps) => (
   <Stack sx={{ flexShrink: 0, alignItems: "center" }}>
     {modified && (
-      <Chip
-        label="Modified"
-        size="small"
-        sx={{
-          height: 18,
-          fontSize: "0.625rem",
-          fontWeight: 600,
-          bgcolor: MODIFIED_INDICATOR_COLOR,
-          color: "#fff",
-          mb: 0.25,
-        }}
-      />
+      <Chip label="Modified" size="small" sx={{ ...MODIFIED_CHIP_COMPACT_SX, mb: 0.25 }} />
     )}
     <Tooltip title="Edit" placement="left">
       <IconButton size="small" onClick={onEdit} aria-label={`edit ${label} ${index + 1}`}>
-        <EditOutlined sx={{ fontSize: "1.125rem" }} />
+        <EditOutlined sx={{ fontSize: EXPAND_ICON_SIZE }} />
       </IconButton>
     </Tooltip>
     <Tooltip title="Move up" placement="left">
@@ -60,7 +49,7 @@ export const CardActionButtons = ({
           disabled={isFirst}
           aria-label={`move ${label} ${index + 1} up`}
         >
-          <ArrowUpwardOutlined sx={{ fontSize: "1.125rem" }} />
+          <ArrowUpwardOutlined sx={{ fontSize: EXPAND_ICON_SIZE }} />
         </IconButton>
       </span>
     </Tooltip>
@@ -72,7 +61,7 @@ export const CardActionButtons = ({
           disabled={isLast}
           aria-label={`move ${label} ${index + 1} down`}
         >
-          <ArrowDownwardOutlined sx={{ fontSize: "1.125rem" }} />
+          <ArrowDownwardOutlined sx={{ fontSize: EXPAND_ICON_SIZE }} />
         </IconButton>
       </span>
     </Tooltip>
@@ -83,7 +72,7 @@ export const CardActionButtons = ({
         onClick={onRemove}
         aria-label={`remove ${label} ${index + 1}`}
       >
-        <DeleteOutlined sx={{ fontSize: "1.125rem" }} />
+        <DeleteOutlined sx={{ fontSize: EXPAND_ICON_SIZE }} />
       </IconButton>
     </Tooltip>
   </Stack>

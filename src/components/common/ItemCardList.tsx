@@ -5,7 +5,9 @@ import Stack from "@mui/material/Stack"
 import Typography from "@mui/material/Typography"
 import { Fragment, type ReactNode, useState } from "react"
 
-import { ConfirmDialog } from "@/components/common/ConfirmDialog"
+import { FIELD_GROUP_GAP } from "@/theme"
+
+import { ConfirmDialog } from "./ConfirmDialog"
 
 export interface CardActions {
   onEdit: () => void
@@ -103,7 +105,7 @@ export const ItemCardList = <T,>({
 
   return (
     <>
-      <Stack spacing={1.5}>
+      <Stack spacing={FIELD_GROUP_GAP}>
         {items.length === 0 && (
           <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
             No {itemLabel.toLowerCase()}s added yet.

@@ -69,9 +69,6 @@ export const HEADING_PL = 1.5
 // Accent shadows
 
 export const HOVER_ACCENT_SHADOW = `inset 3px 0 0 0 ${PRIMARY}`
-export const SELECTED_ACCENT_SHADOW = `inset 4px 0 0 0 ${SECONDARY}`
-export const MODIFIED_ACCENT_SHADOW = `inset 3px 0 0 0 ${SUCCESS}`
-
 // Modification highlight (orange)
 
 export const MODIFIED_INDICATOR_COLOR = "#E67E22"
@@ -84,6 +81,22 @@ export const MODIFIED_TEXT_SX = {
   borderRadius: 0.5,
   px: 0.5,
   display: "inline-block",
+} as const
+
+export const MODIFIED_CHIP_SX = {
+  height: 20,
+  fontSize: "0.6875rem",
+  fontWeight: 600,
+  bgcolor: MODIFIED_INDICATOR_COLOR,
+  color: "#fff",
+} as const
+
+export const MODIFIED_CHIP_COMPACT_SX = {
+  height: 18,
+  fontSize: "0.625rem",
+  fontWeight: 600,
+  bgcolor: MODIFIED_INDICATOR_COLOR,
+  color: "#fff",
 } as const
 
 // Alpha backgrounds
