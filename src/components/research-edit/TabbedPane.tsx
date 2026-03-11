@@ -15,6 +15,7 @@ interface TabbedPaneProps {
   datasetSection: React.ReactNode
   humId: string
   originalUrls: { ja: string | null; en: string | null }
+  releaseUrls: { ja: string | null; en: string | null }
   showOriginalIframe?: boolean
   initialTabIndex?: number
 }
@@ -71,10 +72,12 @@ const OriginalTabContent = ({
   )
 }
 
-export const TabbedPane = ({ prefix, form, datasetSection, humId, originalUrls, showOriginalIframe = true, initialTabIndex = 0 }: TabbedPaneProps) => {
+export const TabbedPane = ({ prefix, form, datasetSection, humId, originalUrls, releaseUrls, showOriginalIframe = true, initialTabIndex = 0 }: TabbedPaneProps) => {
   const [tabIndex, setTabIndex] = useState(initialTabIndex)
-  const proxyUrl = (lang: "ja" | "en") =>
+  const originalProxyUrl = (lang: "ja" | "en") =>
     `/api/researches/${encodeURIComponent(humId)}/original?lang=${lang}`
+  const releaseProxyUrl = (lang: "ja" | "en") =>
+    `/api/researches/${encodeURIComponent(humId)}/release?lang=${lang}`
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -83,6 +86,8 @@ export const TabbedPane = ({ prefix, form, datasetSection, humId, originalUrls, 
         <Tab label="Dataset" {...tabA11yProps(prefix, 1)} />
         <Tab label="Original Ja" {...tabA11yProps(prefix, 2)} />
         <Tab label="Original En" {...tabA11yProps(prefix, 3)} />
+        <Tab label="Rel. Ja" {...tabA11yProps(prefix, 4)} />
+        <Tab label="Rel. En" {...tabA11yProps(prefix, 5)} />
       </Tabs>
       <Box sx={{ flex: 1, overflow: "hidden" }}>
         <TabPanel value={tabIndex} index={0} prefix={prefix} lazy>
@@ -98,14 +103,28 @@ export const TabbedPane = ({ prefix, form, datasetSection, humId, originalUrls, 
         <TabPanel value={tabIndex} index={2} prefix={prefix} lazy>
           <OriginalTabContent
             url={originalUrls.ja}
-            iframeSrc={proxyUrl("ja")}
+            iframeSrc={originalProxyUrl("ja")}
             showIframe={showOriginalIframe}
           />
         </TabPanel>
         <TabPanel value={tabIndex} index={3} prefix={prefix} lazy>
           <OriginalTabContent
             url={originalUrls.en}
-            iframeSrc={proxyUrl("en")}
+            iframeSrc={originalProxyUrl("en")}
+            showIframe={showOriginalIframe}
+          />
+        </TabPanel>
+        <TabPanel value={tabIndex} index={4} prefix={prefix} lazy>
+          <OriginalTabContent
+            url={releaseUrls.ja}
+            iframeSrc={releaseProxyUrl("ja")}
+            showIframe={showOriginalIframe}
+          />
+        </TabPanel>
+        <TabPanel value={tabIndex} index={5} prefix={prefix} lazy>
+          <OriginalTabContent
+            url={releaseUrls.en}
+            iframeSrc={releaseProxyUrl("en")}
             showIframe={showOriginalIframe}
           />
         </TabPanel>

@@ -302,6 +302,12 @@ export const ResearchEditPage = () => {
   const sectionStatuses = curationData?.sectionStatuses ?? {}
   const isReadOnly = viewMode === "readOnly"
 
+  const releaseSuffix = research?.latestVersion === "hum0329-v1" ? "-release-note" : "-release"
+  const releaseUrls = {
+    ja: research?.url.ja ? `${research.url.ja}${releaseSuffix}` : null,
+    en: research?.url.en ? `${research.url.en}-release` : null,
+  }
+
   return (
     <Box sx={{ height: "100%", overflow: "auto" }}>
       {/* Lock conflict dialog */}
@@ -385,6 +391,7 @@ export const ResearchEditPage = () => {
                 )}
                 humId={humId}
                 originalUrls={{ ja: research?.url.ja ?? null, en: research?.url.en ?? null }}
+                releaseUrls={releaseUrls}
                 showOriginalIframe={debugOriginal !== "off"}
               />
             </PanelSideProvider>
@@ -412,6 +419,7 @@ export const ResearchEditPage = () => {
                 )}
                 humId={humId}
                 originalUrls={{ ja: research?.url.ja ?? null, en: research?.url.en ?? null }}
+                releaseUrls={releaseUrls}
                 showOriginalIframe={debugOriginal !== "off"}
                 initialTabIndex={2}
               />
