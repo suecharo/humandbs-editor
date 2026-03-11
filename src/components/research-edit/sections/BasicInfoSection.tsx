@@ -1,7 +1,9 @@
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import OpenInNewIcon from "@mui/icons-material/OpenInNew"
 import Alert from "@mui/material/Alert"
+import Badge from "@mui/material/Badge"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Chip from "@mui/material/Chip"
@@ -43,6 +45,8 @@ interface BasicInfoSectionProps {
   viewMode: "editing" | "readOnly"
   editingByName?: string | undefined
   onForceEdit?: (() => void) | undefined
+  commentCount: number
+  onOpenComments: () => void
 }
 
 export const BasicInfoSection = ({
@@ -58,6 +62,8 @@ export const BasicInfoSection = ({
   viewMode,
   editingByName,
   onForceEdit,
+  commentCount,
+  onOpenComments,
 }: BasicInfoSectionProps) => {
   const [expandedVersion, setExpandedVersion] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<"save" | "discard" | "uncurated" | "curated" | null>(null)
@@ -116,6 +122,16 @@ export const BasicInfoSection = ({
         <Box sx={{ display: "flex", alignItems: "center", gap: FIELD_GROUP_GAP }}>
           <SectionHeader title={research.humId} component="h1" />
           <CurationStatusChip status={curationStatus} />
+          <Badge badgeContent={commentCount} color="primary" max={99}>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<ChatBubbleOutlineIcon />}
+              onClick={onOpenComments}
+            >
+              コメント
+            </Button>
+          </Badge>
         </Box>
         {!isReadOnly && (
           <Box sx={{ display: "flex", alignItems: "center", gap: INLINE_GAP, "& .MuiButton-root": { minWidth: BUTTON_MIN_WIDTH_ACTION } }}>

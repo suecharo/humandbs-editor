@@ -1,5 +1,6 @@
 import express from "express"
 
+import { createCommentsRouter } from "./routes/comments"
 import { createCurationStatusRouter } from "./routes/curation-status"
 import { createDatasetsRouter } from "./routes/datasets"
 import { createLockRouter } from "./routes/lock"
@@ -26,6 +27,7 @@ app.use(express.json())
 app.use("/api/researches", createResearchesRouter(STRUCTURED_JSON_DIR, EDITOR_STATE_DIR))
 app.use("/api/curation-status", createCurationStatusRouter(EDITOR_STATE_DIR))
 app.use("/api/datasets", createDatasetsRouter(STRUCTURED_JSON_DIR, EDITOR_STATE_DIR))
+app.use("/api/comments", createCommentsRouter(EDITOR_STATE_DIR))
 app.use("/api/lock", createLockRouter(EDITOR_STATE_DIR))
 
 app.listen(PORT, () => {

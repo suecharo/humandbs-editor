@@ -14,11 +14,13 @@ import { ConfirmDialog } from "../components/common/ConfirmDialog"
 import { LockConflictDialog } from "../components/common/LockConflictDialog"
 import { AppFooter } from "../components/layout/AppFooter"
 import { SplitLayout } from "../components/layout/SplitLayout"
+import { CommentDialog } from "../components/research-edit/CommentDialog"
 import { ResearchForm } from "../components/research-edit/ResearchForm"
 import { BasicInfoSection } from "../components/research-edit/sections/BasicInfoSection"
 import { DatasetsSection } from "../components/research-edit/sections/DatasetsSection"
 import { TabbedPane } from "../components/research-edit/TabbedPane"
 import { PanelSideProvider } from "../contexts/panel-side"
+import { useAddComment, useComments, useDeleteComment } from "../hooks/use-comments"
 import { useCurationStatus, useUpdateSectionStatus } from "../hooks/use-curation-status"
 import { useHeartbeat } from "../hooks/use-heartbeat"
 import { LockConflictError, useAcquireLock } from "../hooks/use-lock"
@@ -45,6 +47,10 @@ export const ResearchEditPage = () => {
   const userName = useAtomValue(userNameAtom)
   const { data: research, isLoading, error } = useResearch(humId)
   const { data: versions } = useResearchVersions(humId)
+  const { data: comments = [] } = useComments(humId)
+  const addComment = useAddComment(humId)
+  const deleteComment = useDeleteComment(humId)
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false)
   const { data: curationData } = useCurationStatus(humId)
   const updateSectionStatus = useUpdateSectionStatus(humId)
   const saveMutation = useSaveResearch(humId)
@@ -334,6 +340,15 @@ export const ResearchEditPage = () => {
         他のユーザーがデータを更新しました。ページをリロードして最新のデータを読み込み直してください。
       </ConfirmDialog>
 
+      <CommentDialog
+        open={commentDialogOpen}
+        onClose={() => setCommentDialogOpen(false)}
+        comments={comments}
+        onAdd={(body) => addComment.mutate(body)}
+        onDelete={(commentId) => deleteComment.mutate(commentId)}
+        adding={addComment.isPending}
+      />
+
       <Box sx={{ bgcolor: "background.default" }}>
         <Container sx={{ pt: SUBSECTION_GAP }}>
           <Breadcrumbs sx={{ mb: SUBSECTION_GAP }} separator={<NavigateNextIcon sx={{ fontSize: INLINE_ICON_SIZE }} />}>
@@ -361,6 +376,8 @@ export const ResearchEditPage = () => {
                 viewMode={viewMode === "pending" ? "editing" : viewMode}
                 editingByName={lockConflict?.editingByName}
                 onForceEdit={handleSwitchToEditing}
+                commentCount={comments.length}
+                onOpenComments={() => setCommentDialogOpen(true)}
               />
             </Box>
           )}

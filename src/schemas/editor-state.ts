@@ -10,6 +10,14 @@ export type CurationStatus = z.infer<typeof CurationStatusSchema>
 export const SectionCurationStatusSchema = z.enum(["uncurated", "curated"])
 export type SectionCurationStatus = z.infer<typeof SectionCurationStatusSchema>
 
+export const ResearchCommentSchema = z.object({
+  id: z.string(),
+  author: z.string(),
+  text: z.string(),
+  createdAt: z.string(),
+})
+export type ResearchComment = z.infer<typeof ResearchCommentSchema>
+
 export const ResearchStateSchema = z.object({
   status: CurationStatusSchema,
   sectionStatuses: z.record(z.string(), SectionCurationStatusSchema).optional(),
@@ -17,6 +25,7 @@ export const ResearchStateSchema = z.object({
   editingBy: z.string().nullable(),
   editingByName: z.string().nullable(),
   editingAt: z.string().nullable(),
+  comments: z.array(ResearchCommentSchema).optional(),
 })
 export type ResearchState = z.infer<typeof ResearchStateSchema>
 

@@ -1,3 +1,5 @@
 import { atomWithStorage } from "jotai/utils"
 
-export const userNameAtom = atomWithStorage("humandbs-editor-userName", "")
+export const userNameAtom = atomWithStorage("humandbs-editor-userName", "", undefined, {
+  getOnInit: true,
+})
