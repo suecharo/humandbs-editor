@@ -37,6 +37,7 @@ export const UserNameDialog = () => {
     <Dialog
       open={open}
       disableEscapeKeyDown
+      disableScrollLock
       sx={{ "& .MuiDialog-paper": { minWidth: DIALOG_MIN_WIDTH } }}
     >
       <DialogTitle>ユーザー名の設定</DialogTitle>

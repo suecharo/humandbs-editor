@@ -133,10 +133,10 @@ export const ItemCardList = <T,>({
         </Box>
       </Stack>
 
-      {editingItem !== undefined && renderEditDialog({
-        open: true,
-        item: editingItem,
-        serverItem: editingServerItem,
+      {renderEditDialog({
+        open: editingItem !== undefined,
+        item: editingItem ?? items[0] ?? createDefault(),
+        serverItem: editingItem !== undefined ? editingServerItem : undefined,
         onChange: handleChange,
         onClose: () => setEditingIndex(null),
       })}
