@@ -91,14 +91,15 @@ const proxyHumandbsPage = async (targetUrl: string, res: Response): Promise<void
   res.send($.html())
 }
 
-const buildReleaseUrl = (latestVersion: string, lang: "ja" | "en"): string => {
-  const suffix = latestVersion === "hum0329-v1" && lang === "ja"
+const buildReleaseUrl = (humId: string, latestVersion: string, lang: "ja" | "en"): string => {
+  const humVersionId = `${humId}-${latestVersion}`
+  const suffix = humId === "hum0329" && latestVersion === "v1" && lang === "ja"
     ? "-release-note"
     : "-release"
 
   return lang === "ja"
-    ? `${HUMANDBS_BASE_URL}/${latestVersion}${suffix}`
-    : `${HUMANDBS_BASE_URL}/en/${latestVersion}${suffix}`
+    ? `${HUMANDBS_BASE_URL}/${humVersionId}${suffix}`
+    : `${HUMANDBS_BASE_URL}/en/${humVersionId}${suffix}`
 }
 
 export const createResearchesRouter = (structuredJsonDir: string, editorStateDir: string): Router => {
@@ -122,7 +123,7 @@ export const createResearchesRouter = (structuredJsonDir: string, editorStateDir
           const datasetIds: string[] = []
           const criteriaSet = new Set<string>()
           try {
-            const versionFile = `${research.latestVersion}.json`
+            const versionFile = `${research.humId}-${research.latestVersion}.json`
             const versionPath = path.join(structuredJsonDir, "research-version", versionFile)
             const version = await readJson(versionPath, ResearchVersionSchema)
             datasetCount = version.datasets.length
@@ -361,7 +362,7 @@ export const createResearchesRouter = (structuredJsonDir: string, editorStateDir
       const lang = langResult.data
       const researchPath = path.join(structuredJsonDir, "research", `${humId}.json`)
       const research = await readJson(researchPath, ResearchSchema)
-      const releaseUrl = buildReleaseUrl(research.latestVersion, lang)
+      const releaseUrl = buildReleaseUrl(research.humId, research.latestVersion, lang)
 
       await proxyHumandbsPage(releaseUrl, res)
     } catch (error) {

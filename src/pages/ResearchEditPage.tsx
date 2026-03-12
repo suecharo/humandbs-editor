@@ -308,7 +308,7 @@ export const ResearchEditPage = () => {
   const sectionStatuses = curationData?.sectionStatuses ?? {}
   const isReadOnly = viewMode === "readOnly"
 
-  const releaseSuffix = research?.latestVersion === "hum0329-v1" ? "-release-note" : "-release"
+  const releaseSuffix = research?.humId === "hum0329" && research?.latestVersion === "v1" ? "-release-note" : "-release"
   const releaseUrls = {
     ja: research?.url.ja ? `${research.url.ja}${releaseSuffix}` : null,
     en: research?.url.en ? `${research.url.en}-release` : null,
@@ -400,7 +400,7 @@ export const ResearchEditPage = () => {
                   <DatasetsSection
                     humId={humId}
                     versions={versions ?? []}
-                    latestVersionId={draft.latestVersion}
+                    latestVersionId={`${humId}-${draft.latestVersion}`}
                     sectionStatuses={sectionStatuses}
                     onToggleSection={handleToggleSection}
                     readOnly={isReadOnly}
@@ -428,7 +428,7 @@ export const ResearchEditPage = () => {
                   <DatasetsSection
                     humId={humId}
                     versions={versions ?? []}
-                    latestVersionId={draft.latestVersion}
+                    latestVersionId={`${humId}-${draft.latestVersion}`}
                     sectionStatuses={sectionStatuses}
                     onToggleSection={handleToggleSection}
                     readOnly={isReadOnly}

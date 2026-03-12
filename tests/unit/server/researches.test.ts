@@ -41,7 +41,7 @@ const mockResearch = (humId: string) => ({
   relatedPublication: [],
   controlledAccessUser: [],
   versionIds: [`${humId}-v1`],
-  latestVersion: `${humId}-v1`,
+  latestVersion: "v1",
   datePublished: "2024-01-01",
   dateModified: "2024-01-02",
 })

@@ -21,8 +21,8 @@
 - 全タブは lazy rendering (初回表示まで DOM 未生成)
 - Original タブはサーバーサイドプロキシ (`GET /api/researches/:humId/original?lang=ja|en`) で humandbs のページを取得し、header/menu/footer を除去して iframe に表示する
 - Rel. タブはサーバーサイドプロキシ (`GET /api/researches/:humId/release?lang=ja|en`) で release ページを取得し、同様に iframe に表示する
-  - Release URL: `https://humandbs.dbcls.jp/{latestVersion}-release` (JA) / `https://humandbs.dbcls.jp/en/{latestVersion}-release` (EN)
-  - 特殊ケース: `hum0329-v1` + `ja` は suffix が `-release-note`
+  - Release URL: `https://humandbs.dbcls.jp/{humId}-{latestVersion}-release` (JA) / `https://humandbs.dbcls.jp/en/{humId}-{latestVersion}-release` (EN)
+  - 特殊ケース: `humId=hum0329` かつ `latestVersion=v1` かつ `ja` は suffix が `-release-note`
 - プロキシ先は `humandbs.dbcls.jp` に限定 (SSRF 対策)
 - フォールバックとして「新しいタブで開く」リンクを表示する
 

@@ -5,7 +5,6 @@ import {
   BilingualTextValueSchema,
   CriteriaCanonicalSchema,
   NormalizedPolicySchema,
-  TextValueSchema,
 } from "./common"
 
 // Enums
@@ -83,10 +82,6 @@ export type SearchableExperimentFields = z.infer<typeof SearchableExperimentFiel
 export const ExperimentSchema = z.object({
   header: BilingualTextValueSchema,
   data: z.record(z.string(), BilingualTextValueSchema.nullable()),
-  footers: z.object({
-    ja: z.array(TextValueSchema),
-    en: z.array(TextValueSchema),
-  }),
   searchable: SearchableExperimentFieldsSchema.optional(),
 })
 export type Experiment = z.infer<typeof ExperimentSchema>

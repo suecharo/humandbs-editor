@@ -21,7 +21,7 @@ const makeResearch = (overrides: Partial<Research> = {}): Research => ({
   relatedPublication: [],
   controlledAccessUser: [],
   versionIds: ["hum0001-v1"],
-  latestVersion: "hum0001-v1",
+  latestVersion: "v1",
   datePublished: "2024-01-01",
   dateModified: "2024-01-02",
   ...overrides,

@@ -71,7 +71,6 @@ export const createDefaultSearchableFields = (): SearchableExperimentFields => (
 export const createDefaultExperiment = (): Experiment => ({
   header: { ja: { text: "", rawHtml: "" }, en: { text: "", rawHtml: "" } },
   data: {},
-  footers: { ja: [], en: [] },
   searchable: createDefaultSearchableFields(),
 })
 

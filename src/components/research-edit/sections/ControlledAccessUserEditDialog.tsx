@@ -37,7 +37,7 @@ export const ControlledAccessUserEditDialog = ({
 
   const availableIds = (() => {
     if (!researchDraft) return []
-    const latestVersion = versionsDraft.find((v) => v.humVersionId === researchDraft.latestVersion)
+    const latestVersion = versionsDraft.find((v) => v.humVersionId === `${researchDraft.humId}-${researchDraft.latestVersion}`)
 
     return latestVersion?.datasets.map((d) => d.datasetId) ?? []
   })()
