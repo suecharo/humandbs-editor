@@ -38,6 +38,7 @@ export const createLockRouter = (editorStateDir: string): Router => {
 
       const state = editorState.researches[humId] ?? {
         status: "uncurated" as const,
+        sectionStatuses: {},
         updatedAt: new Date().toISOString(),
         editingBy: null,
         editingByName: null,

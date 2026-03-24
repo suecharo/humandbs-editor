@@ -57,6 +57,7 @@ export const createCommentsRouter = (editorStateDir: string): Router => {
       } else {
         editorState.researches[humId] = {
           status: "uncurated",
+          sectionStatuses: {},
           updatedAt: new Date().toISOString(),
           editingBy: null,
           editingByName: null,

@@ -84,6 +84,7 @@ export const createCurationStatusRouter = (editorStateDir: string): Router => {
         editingBy: currentEntry?.editingBy ?? null,
         editingByName: currentEntry?.editingByName ?? null,
         editingAt: currentEntry?.editingAt ?? null,
+        comments: currentEntry?.comments,
       }
 
       await writeEditorState(editorStateDir, editorState)
