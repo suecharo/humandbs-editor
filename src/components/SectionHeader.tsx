@@ -16,18 +16,21 @@ export const SectionHeader = ({ title, subtitle, action, titleAction, component 
   action?: ReactNode | undefined
   titleAction?: ReactNode | undefined
   component?: ElementType | undefined
-  size?: "default" | "small" | undefined
+  size?: "default" | "medium" | "small" | undefined
   color?: string | undefined
   modified?: boolean | undefined
 }) => {
   const isSmall = size === "small"
+  const isMedium = size === "medium"
   const resolvedColor = color ?? (isSmall ? "secondary.main" : "primary.main")
+  const variant = isSmall ? "h3" : isMedium ? "h2" : "h1"
+  const borderWidth = isSmall ? HEADING_BORDER_SMALL : HEADING_BORDER_LARGE
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography
-          variant={isSmall ? "h3" : "h1"}
+          variant={variant}
           component={isSmall ? "h3" : component}
           sx={{
             pl: HEADING_PL,
@@ -38,9 +41,9 @@ export const SectionHeader = ({ title, subtitle, action, titleAction, component 
               left: 0,
               top: 0,
               bottom: 0,
-              width: isSmall ? HEADING_BORDER_SMALL : HEADING_BORDER_LARGE,
+              width: borderWidth,
               bgcolor: resolvedColor,
-              borderRadius: isSmall ? HEADING_BORDER_SMALL : HEADING_BORDER_LARGE,
+              borderRadius: borderWidth,
             },
           }}
         >

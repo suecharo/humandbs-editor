@@ -75,6 +75,8 @@ export const AppHeader = () => {
           </Link>
           <Box sx={{ display: "flex", alignItems: "center", ml: 3, gap: 3 }}>
             <NavLink to="/" label="研究一覧" />
+            <NavLink to="/jga/ds" label="J-DS 申請" />
+            <NavLink to="/jga/du" label="J-DU 申請" />
           </Box>
           <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>

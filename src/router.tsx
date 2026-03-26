@@ -3,6 +3,8 @@ import { createRouter, createRootRoute, createRoute, Outlet } from "@tanstack/re
 
 import { AppFooter } from "./components/layout/AppFooter"
 import { AppHeader } from "./components/layout/AppHeader"
+import { JgaDsFormPage } from "./pages/JgaDsFormPage"
+import { JgaDuFormPage } from "./pages/JgaDuFormPage"
 import { NotFoundPage } from "./pages/NotFoundPage"
 import { ResearchEditPage } from "./pages/ResearchEditPage"
 import { ResearchListPage } from "./pages/ResearchListPage"
@@ -44,6 +46,18 @@ const indexRoute = createRoute({
   component: () => <ResearchListPage />,
 })
 
+const jgaDsRoute = createRoute({
+  getParentRoute: () => defaultLayoutRoute,
+  path: "/jga/ds",
+  component: () => <JgaDsFormPage />,
+})
+
+const jgaDuRoute = createRoute({
+  getParentRoute: () => defaultLayoutRoute,
+  path: "/jga/du",
+  component: () => <JgaDuFormPage />,
+})
+
 export const researchEditRoute = createRoute({
   getParentRoute: () => fullScreenLayoutRoute,
   path: "/research/$humId",
@@ -53,7 +67,7 @@ export const researchEditRoute = createRoute({
 })
 
 const routeTree = rootRoute.addChildren([
-  defaultLayoutRoute.addChildren([indexRoute]),
+  defaultLayoutRoute.addChildren([indexRoute, jgaDsRoute, jgaDuRoute]),
   fullScreenLayoutRoute.addChildren([researchEditRoute]),
 ])
 
