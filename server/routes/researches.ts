@@ -6,8 +6,10 @@ import path from "node:path"
 import { z } from "zod/v4"
 
 import { CriteriaCanonicalSchema } from "../../src/schemas/common"
+import type { SectionCurationStatus } from "../../src/schemas/editor-state"
 import { ResearchSchema } from "../../src/schemas/research"
 import { ResearchVersionSchema } from "../../src/schemas/research-version"
+import { deriveCurationStatus, RESEARCH_SECTION_IDS } from "../../src/utils/curation"
 import { readEditorState } from "../utils/editor-state"
 import { readJson } from "../utils/read-json"
 import { parseHumId } from "../utils/validate-hum-id"
@@ -121,6 +123,7 @@ export const createResearchesRouter = (structuredJsonDir: string, editorStateDir
           // Read latest research-version to get dataset count, IDs, and criteria
           let datasetCount = 0
           const datasetIds: string[] = []
+          const datasetRefs: { datasetId: string; version: string }[] = []
           const criteriaSet = new Set<string>()
           try {
             const versionFile = `${research.humId}-${research.latestVersion}.json`
@@ -129,6 +132,7 @@ export const createResearchesRouter = (structuredJsonDir: string, editorStateDir
             datasetCount = version.datasets.length
             for (const ds of version.datasets) {
               datasetIds.push(ds.datasetId)
+              datasetRefs.push({ datasetId: ds.datasetId, version: ds.version })
             }
 
             // Read each dataset to collect unique criteria values
@@ -152,7 +156,24 @@ export const createResearchesRouter = (structuredJsonDir: string, editorStateDir
             // If version file doesn't exist, dataset count remains 0
           }
 
-          const curationStatus = editorState.researches[research.humId]?.status ?? "uncurated"
+          // Recompute curation status including dataset keys
+          const storedStatuses = editorState.researches[research.humId]?.sectionStatuses ?? {}
+          const allStatuses: Record<string, SectionCurationStatus> = {}
+          for (const id of RESEARCH_SECTION_IDS) {
+            allStatuses[id] = (storedStatuses[id] as SectionCurationStatus) ?? "uncurated"
+          }
+          for (const [key, value] of Object.entries(storedStatuses)) {
+            if (key.startsWith("dataset:")) {
+              allStatuses[key] = value as SectionCurationStatus
+            }
+          }
+          for (const ref of datasetRefs) {
+            const dsKey = `dataset:${ref.datasetId}-${ref.version}`
+            if (!(dsKey in allStatuses)) {
+              allStatuses[dsKey] = "uncurated"
+            }
+          }
+          const curationStatus = deriveCurationStatus(allStatuses)
 
           const researchState = editorState.researches[research.humId]
 

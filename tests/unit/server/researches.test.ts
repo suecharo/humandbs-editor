@@ -241,6 +241,57 @@ describe("GET /api/researches", () => {
     expect(items[0]!.versionCount).toBe(1)
     expect(items[0]!.accessRestrictions).toEqual([])
   })
+
+  it("returns in-progress when all research sections are curated but datasets are uncurated", async () => {
+    const editorState = {
+      researches: {
+        hum0001: {
+          status: "curated",
+          sectionStatuses: {
+            title: "curated",
+            summary: "curated",
+            dataProvider: "curated",
+            grant: "curated",
+            publication: "curated",
+            controlledAccessUser: "curated",
+          },
+          updatedAt: new Date().toISOString(),
+          editingBy: null,
+          editingByName: null,
+          editingAt: null,
+        },
+      },
+      datasets: {},
+      experiments: {},
+    }
+
+    mockReaddir.mockResolvedValue(["hum0001.json"])
+    mockReadFile.mockImplementation(async (filePath: string) => {
+      const basename = path.basename(filePath, ".json")
+
+      if (filePath.includes("dataset/")) {
+        return JSON.stringify(mockDataset(basename, "v1", "Controlled-access (Type I)"))
+      }
+      if (filePath.includes("research-version")) {
+        return JSON.stringify(mockResearchVersion("hum0001", 2))
+      }
+      if (filePath.includes("editor-state")) {
+        return JSON.stringify(editorState)
+      }
+
+      return JSON.stringify(mockResearch(basename))
+    })
+
+    const handler = getHandler("/")
+    const req = {} as Request
+    const json = vi.fn()
+    const res = { json, status: vi.fn().mockReturnThis() } as unknown as Response
+
+    await handler(req, res, vi.fn())
+
+    const items = json.mock.calls[0]![0] as { curationStatus: string }[]
+    expect(items[0]!.curationStatus).toBe("in-progress")
+  })
 })
 
 describe("GET /api/researches/:humId", () => {

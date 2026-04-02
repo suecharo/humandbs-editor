@@ -5,13 +5,14 @@ import { SectionCurationStatusSchema } from "../../src/schemas/editor-state"
 import type { SectionCurationStatus } from "../../src/schemas/editor-state"
 import { deriveCurationStatus, RESEARCH_SECTION_IDS } from "../../src/utils/curation"
 import { readEditorState, writeEditorState } from "../utils/editor-state"
+import { resolveDatasetSectionKeys } from "../utils/resolve-dataset-keys"
 import { parseHumId } from "../utils/validate-hum-id"
 
 const UpdateBodySchema = z.object({
   sectionStatuses: z.record(z.string(), SectionCurationStatusSchema),
 })
 
-export const createCurationStatusRouter = (editorStateDir: string): Router => {
+export const createCurationStatusRouter = (structuredJsonDir: string, editorStateDir: string): Router => {
   const router = Router()
 
   router.get("/research/:humId", async (req, res) => {
@@ -30,6 +31,14 @@ export const createCurationStatusRouter = (editorStateDir: string): Router => {
       for (const [key, value] of Object.entries(stored)) {
         if (key.startsWith("dataset:")) {
           sectionStatuses[key] = value as SectionCurationStatus
+        }
+      }
+
+      // Auto-initialize missing dataset keys from structured-json
+      const datasetKeys = await resolveDatasetSectionKeys(structuredJsonDir, humId)
+      for (const key of datasetKeys) {
+        if (!(key in sectionStatuses)) {
+          sectionStatuses[key] = "uncurated"
         }
       }
 
@@ -73,6 +82,14 @@ export const createCurationStatusRouter = (editorStateDir: string): Router => {
         merged[key] = bodyResult.data.sectionStatuses[key]
           ?? (currentSectionStatuses[key] as SectionCurationStatus)
           ?? "uncurated"
+      }
+
+      // Auto-initialize missing dataset keys from structured-json
+      const datasetKeys = await resolveDatasetSectionKeys(structuredJsonDir, humId)
+      for (const key of datasetKeys) {
+        if (!(key in merged)) {
+          merged[key] = "uncurated"
+        }
       }
 
       const status = deriveCurationStatus(merged)
